@@ -6,6 +6,7 @@ const { createLogger } = require("./config/logger");
 const { connectDb, waitForIndexes, disconnectDb } = require("./config/db");
 const { createApp } = require("./app");
 const { reconcileOrphanedRuns } = require("./services/crawlRunner");
+const { startScheduler, stopScheduler } = require("./jobs/scheduler");
 
 const FORCE_EXIT_MS = 25000;
 
@@ -50,6 +51,7 @@ async function main() {
             process.exit(1);
         }
         logger.info({ port: server.address().port }, "server listening");
+        startScheduler({ config, logger });
     });
 
     let shuttingDown = false;
@@ -65,6 +67,7 @@ async function main() {
         // Stop accepting connections; idle keep-alive sockets would otherwise hold close() up.
         const closed = new Promise((resolve) => server.close(resolve));
         server.closeIdleConnections();
+        await stopScheduler().catch((err) => logger.error({ err }, "stopping the scheduler failed"));
         await closed;
         await disconnectDb().catch((err) => logger.error({ err }, "closing MongoDB failed"));
         logger.info("shutdown complete");
