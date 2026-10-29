@@ -5,12 +5,12 @@ const {Badge}=require('./badges');
 const userBadgeSchema=new mongoose.Schema({
     user:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'User'
+        ref:'User',
         required:true
     },
     badge:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'Badge'
+        ref:'Badge',
         required:true
     },
     earnedAt:{
@@ -21,7 +21,7 @@ const userBadgeSchema=new mongoose.Schema({
 });
 
 userBadgeSchema.index(
-  { userId: 1, badgeId: 1 },
+  { user: 1, badge: 1 },
   { unique: true }
 );
 
