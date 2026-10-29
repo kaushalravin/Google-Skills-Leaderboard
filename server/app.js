@@ -3,6 +3,7 @@ const pinoHttp = require("pino-http");
 
 const { requestId } = require("./middleware/requestId");
 const { notFound, errorHandler } = require("./middleware/errors");
+const { participantsRouter } = require("./routes/participants");
 const { adminRouter } = require("./routes/admin");
 const { leaderboardRouter } = require("./routes/leaderboard");
 
@@ -30,8 +31,11 @@ function createApp({ config, logger, crawlDeps = {} }) {
         })
     );
 
+    // Bulk ingestion gets a larger body limit; express.json skips already-parsed bodies.
+    app.use("/api/admin/participants", express.json({ limit: "1mb" }));
     app.use(express.json({ limit: "100kb" }));
 
+    app.use("/api/admin/participants", participantsRouter);
     app.use("/api/admin", adminRouter);
     app.use("/api/leaderboard", leaderboardRouter);
 
