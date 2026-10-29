@@ -11,7 +11,8 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "node --test \"tests/unit/**/*.test.js\" \"tests/integration/**/*.test.js\"",
-    "crawl:once": "node scripts/crawl-once.js"
+    "crawl:once": "node scripts/crawl-once.js",
+    "check:real": "node scripts/check-real.js"
   },
   "dependencies": {
     "axios": "^1.21.0",

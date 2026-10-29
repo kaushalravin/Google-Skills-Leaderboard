@@ -9,6 +9,7 @@ const { MongoClient } = require("mongodb");
 const { TEST_ADMIN_KEY } = require("../helpers/env");
 
 const CRAWL_ONCE = path.resolve(__dirname, "../../scripts/crawl-once.js");
+const CHECK_REAL = path.resolve(__dirname, "../../scripts/check-real.js");
 let replSet;
 
 before(async () => {
@@ -56,6 +57,15 @@ test("crawl:once --dry-run runs while the lock is held, takes no lock and writes
     assert.equal(res.code, 0, res.stderr);
     assert.match(res.stderr, /DRY RUN/);
     assert.match(res.stdout, /"total": 0/);
+    assert.deepEqual(await db.collection("job_locks").findOne({ _id: "crawl" }), lock);
+    assert.deepEqual((await db.listCollections().toArray()).map((c) => c.name), ["job_locks"]);
+});
+
+test("check:real runs while the lock is held, takes no lock and writes no crawler_logs", async (t) => {
+    const { uri, db, lock } = await dbWithHeldLock(t, "check-held");
+    const res = await runScript(CHECK_REAL, [], uri);
+    assert.equal(res.code, 0, res.stderr);
+    assert.match(res.stdout, /No data was written\./);
     assert.deepEqual(await db.collection("job_locks").findOne({ _id: "crawl" }), lock);
     assert.deepEqual((await db.listCollections().toArray()).map((c) => c.name), ["job_locks"]);
 });
