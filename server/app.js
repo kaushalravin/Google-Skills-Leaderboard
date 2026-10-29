@@ -3,6 +3,8 @@ const pinoHttp = require("pino-http");
 
 const { requestId } = require("./middleware/requestId");
 const { notFound, errorHandler } = require("./middleware/errors");
+const { securityMiddleware, publicLimiter, adminLimiter } = require("./middleware/security");
+const { healthRouter } = require("./routes/health");
 const { participantsRouter } = require("./routes/participants");
 const { adminRouter } = require("./routes/admin");
 const { leaderboardRouter } = require("./routes/leaderboard");
@@ -30,6 +32,12 @@ function createApp({ config, logger, crawlDeps = {} }) {
             }
         })
     );
+    app.use(securityMiddleware(config));
+
+    // Health is never throttled; limiters run before auth and body parsing.
+    app.use("/api/health", healthRouter);
+    app.use("/api/admin", adminLimiter(config));
+    app.use("/api/leaderboard", publicLimiter(config));
 
     // Bulk ingestion gets a larger body limit; express.json skips already-parsed bodies.
     app.use("/api/admin/participants", express.json({ limit: "1mb" }));
