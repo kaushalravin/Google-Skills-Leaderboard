@@ -66,6 +66,12 @@ test("malformed JSON returns 400 INVALID_JSON", async () => {
     assertErrorShape(res, 400, "INVALID_JSON");
 });
 
+test("a malformed percent-encoded URL is a 400 client error, not a 500", async () => {
+    const res = await request(app).get("/api/leaderboard/%E0%A4%A");
+    assertErrorShape(res, 400, "BAD_REQUEST");
+    assert.doesNotMatch(JSON.stringify(res.body), /decode|%E0/);
+});
+
 test("oversized JSON returns 413 PAYLOAD_TOO_LARGE", async () => {
     const res = await request(app)
         .post("/api/anything")

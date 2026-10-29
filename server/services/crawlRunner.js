@@ -2,6 +2,7 @@ const { randomUUID } = require("node:crypto");
 
 const { crawlAll } = require("./crawl");
 const { tryAcquire, getLockState } = require("./lock");
+const { rebuildLeaderboard: defaultRebuild } = require("./leaderboard");
 const { CrawlerLog } = require("../models/crawlerLog");
 const { createLogger } = require("../config/logger");
 
@@ -27,7 +28,7 @@ function statusOf(result, crashed) {
 
 async function runCrawl({ runId, trigger, triggeredBy, lease, deps }) {
     const { scrape, crawlOptions = {}, logger } = deps;
-    const rebuildLeaderboard = deps.rebuildLeaderboard ?? (async () => {});
+    const rebuildLeaderboard = deps.rebuildLeaderboard ?? defaultRebuild;
     const signal = deps.signal ? AbortSignal.any([lease.signal, deps.signal]) : lease.signal;
     const startedAt = new Date();
     let status = "failed";

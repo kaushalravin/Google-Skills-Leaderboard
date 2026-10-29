@@ -4,6 +4,7 @@ const pinoHttp = require("pino-http");
 const { requestId } = require("./middleware/requestId");
 const { notFound, errorHandler } = require("./middleware/errors");
 const { adminRouter } = require("./routes/admin");
+const { leaderboardRouter } = require("./routes/leaderboard");
 
 // Builds the app without connecting to MongoDB or listening, so tests can use it directly.
 // `crawlDeps` is passed through to startCrawl by the admin routes.
@@ -32,6 +33,7 @@ function createApp({ config, logger, crawlDeps = {} }) {
     app.use(express.json({ limit: "100kb" }));
 
     app.use("/api/admin", adminRouter);
+    app.use("/api/leaderboard", leaderboardRouter);
 
     app.use(notFound);
     app.use(errorHandler());
