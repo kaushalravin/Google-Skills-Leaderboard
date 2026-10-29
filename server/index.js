@@ -5,6 +5,7 @@ const { loadEnv, loadEnvFile, EnvError } = require("./config/env");
 const { createLogger } = require("./config/logger");
 const { connectDb, waitForIndexes, disconnectDb } = require("./config/db");
 const { createApp } = require("./app");
+const { reconcileOrphanedRuns } = require("./services/crawlRunner");
 
 const FORCE_EXIT_MS = 25000;
 
@@ -38,6 +39,9 @@ async function main() {
         process.exit(1);
     }
     await waitForIndexes(logger);
+
+    const orphaned = await reconcileOrphanedRuns();
+    if (orphaned > 0) logger.warn({ orphaned }, "marked orphaned crawl runs as failed");
 
     const app = createApp({ config, logger });
     const server = app.listen(config.PORT, (err) => {

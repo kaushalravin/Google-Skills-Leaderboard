@@ -101,3 +101,38 @@ test("boot against the memory server listens and serves the 404 error shape", as
     assert.ok(lines.some((l) => l.msg === "MongoDB connected"));
     assert.ok(!child.stdoutText.includes(TEST_ADMIN_KEY), "admin key must never be logged");
 });
+
+test("the server listens only once the unique indexes exist, so first requests can't create duplicates", async (t) => {
+    // A fresh database with enough rows that building the indexes takes a noticeable time.
+    const dbName = "leaderboard-indexes";
+    const { MongoClient } = require("mongodb");
+    const client = await MongoClient.connect(replSet.getUri());
+    t.after(() => client.close());
+    const users = Array.from({ length: 100000 }, (_, i) => ({
+        username: `u${i}`,
+        email: `u${i}@example.com`,
+        skillsEmail: `u${i}.skills@example.com`,
+        skillsUrl: `https://www.skills.google/public_profiles/u${i}`,
+        badgeCount: 0,
+        credits: 0
+    }));
+    await client.db(dbName).collection("users").insertMany(users, { ordered: false });
+
+    const child = startServer({ MONGO_URI: replSet.getUri(dbName), ADMIN_API_KEY: TEST_ADMIN_KEY, PORT: "0", CRON_ENABLED: "false" });
+    t.after(() => child.kill());
+    await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(`no listen log:\n${child.stdoutText}${child.stderrText}`)), 60000);
+        child.stdout.on("data", () => {
+            if (logLines(child.stdoutText).some((l) => l.msg === "server listening")) {
+                clearTimeout(timer);
+                resolve();
+            }
+        });
+        child.exited.then((code) => reject(new Error(`server exited ${code}:\n${child.stderrText}`)));
+    });
+
+    const unique = (await client.db(dbName).collection("users").indexes()).filter((i) => i.unique).map((i) => Object.keys(i.key)[0]);
+    assert.deepEqual(unique.sort(), ["email", "skillsEmail", "skillsUrl"]);
+    const userBadgeIndexes = await client.db(dbName).collection("userbadges").indexes();
+    assert.ok(userBadgeIndexes.some((i) => i.unique && i.key.user === 1 && i.key.badge === 1));
+});
