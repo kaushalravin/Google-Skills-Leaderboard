@@ -18,6 +18,8 @@ pnpm-debug.log*
 *.xlsx
 *.xls
 *.csv
+# The organisers' badge whitelist is not participant data; it is read by scraper/webScraper.js.
+!server/data/Accepted Badges.csv
 
 # Build outputs
 dist/

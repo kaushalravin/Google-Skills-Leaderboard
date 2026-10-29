@@ -1,0 +1,8 @@
+# Protected files: check out byte-for-byte as committed (no CRLF conversion).
+server/scraper/webScraper.js -text
+server/scraper/test.js -text
+server/seeds/userSeed.js -text
+server/models/users.js -text
+server/models/badges.js -text
+server/models/userBadges.js -text
+server/data/Accepted?Badges.csv -text
