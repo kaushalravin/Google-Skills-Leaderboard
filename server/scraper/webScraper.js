@@ -1,10 +1,40 @@
 
 const axios = require("axios");
 const cheerio = require("cheerio");
+const path = require("path");
+const XLSX = require("xlsx");
 
 const { User } = require("../models/users");
 const { Badge } = require("../models/badges");
 const { UserBadge } = require("../models/userBadges");
+
+const acceptedBadgesPath = path.resolve(
+    __dirname,
+    "../data/Accepted Badges.csv"
+);
+
+function normalizeBadgeName(name) {
+    return String(name).trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function loadAcceptedBadges() {
+    const workbook = XLSX.readFile(acceptedBadgesPath);
+    const [sheetName] = workbook.SheetNames;
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
+        defval: ""
+    });
+
+    return new Map(
+        rows
+            .map((row) => [
+                normalizeBadgeName(row["Course Name"]),
+                Number(row["# of credits required"])
+            ])
+            .filter(([name, credits]) => name && Number.isFinite(credits))
+    );
+}
+
+const acceptedBadges = loadAcceptedBadges();
 
 const sleep = (ms) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -21,7 +51,7 @@ async function scrapeProfile(skillsUrl) {
         return [];
     }
 
-    return $(".profile-badges .profile-badge")
+    const badges = $(".profile-badges .profile-badge")
         .map((_, element) => {
             const badgeElement = $(element);
 
@@ -72,12 +102,21 @@ async function scrapeProfile(skillsUrl) {
         })
         .get()
         .filter(Boolean);
+
+    return badges.filter((badge) =>
+        acceptedBadges.has(normalizeBadgeName(badge.name))
+    );
 }
 
 async function syncUserBadges(user, badges) {
+    badges = badges.filter((badge) =>
+        acceptedBadges.has(normalizeBadgeName(badge.name))
+    );
+
     if (badges.length === 0) {
         await UserBadge.deleteMany({ user: user._id });
         user.badgeCount = 0;
+        user.credits = 0;
         await user.save();
         return;
     }
@@ -177,6 +216,12 @@ async function syncUserBadges(user, badges) {
     user.badgeCount = await UserBadge.countDocuments({
         user: user._id
     });
+    user.credits = [
+        ...new Set(badges.map((badge) => normalizeBadgeName(badge.name)))
+    ].reduce(
+        (total, badgeName) => total + acceptedBadges.get(badgeName),
+        0
+    );
 
     await user.save();
 }
