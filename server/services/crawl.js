@@ -17,19 +17,6 @@ const NETWORK_CODES = new Set([
     "ENOTFOUND", "EAI_AGAIN", "EPIPE", "ERR_NETWORK"
 ]);
 
-const DEFAULTS = {
-    concurrency: 3,
-    minGapMs: 500,
-    maxRetries: 3,
-    backoffBaseMs: 1000,
-    backoffMaxMs: 30000,
-    retryAfterMaxMs: 120000,
-    startDate: "2026-10-26",
-    endDate: undefined,
-    suspiciousEmptyMinUsers: 5,
-    suspiciousEmptyRatio: 0.3
-};
-
 // --- Whitelist and validity ------------------------------------------------
 
 // Same normalization and row filter as scraper/webScraper.js, which doesn't export them.
@@ -37,20 +24,22 @@ function normalizeBadgeName(name) {
     return String(name).trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-/** Map<normalizedName, credits> from the CSV. */
+/** Map<normalizedName, { name, credits }> from the CSV, in CSV order, with the name as written there. */
 function loadAcceptedBadges() {
     const workbook = XLSX.readFile(ACCEPTED_BADGES_PATH);
     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
     return new Map(
         rows
-            .map((row) => [normalizeBadgeName(row["Course Name"]), Number(row["# of credits required"])])
-            .filter(([name, credits]) => name && Number.isFinite(credits))
+            .map((row) => ({ name: String(row["Course Name"]).trim(), credits: Number(row["# of credits required"]) }))
+            .filter(({ name, credits }) => name && Number.isFinite(credits))
+            .map((badge) => [normalizeBadgeName(badge.name), badge])
     );
 }
 
 const acceptedBadges = loadAcceptedBadges();
+const ACCEPTED_BADGE_NAMES = [...acceptedBadges.values()].map((badge) => badge.name);
 const isWhitelisted = (name) => acceptedBadges.has(normalizeBadgeName(name));
-const badgeCredits = (name) => acceptedBadges.get(normalizeBadgeName(name)) ?? 0;
+const badgeCredits = (name) => acceptedBadges.get(normalizeBadgeName(name))?.credits ?? 0;
 
 /** Inclusive start; end (if set) is exclusive at the following UTC midnight. */
 function competitionWindow({ startDate, endDate }) {
@@ -293,14 +282,11 @@ async function processUser(user, ctx) {
  * Crawls every user with a skillsUrl through the protected scrapeProfile and
  * persists whitelisted badges via upserts. Never deletes anything and never
  * calls syncUserBadges. A failure for one user leaves that user's data untouched.
+ * options: settingsFromConfig(config), plus optional scrape, signal, dryRun and logger.
  */
-async function crawlAll(options = {}) {
-    const { scrape = scrapeProfile, signal, dryRun = false } = options;
+async function crawlAll(options) {
+    const { scrape = scrapeProfile, signal, dryRun = false, ...settings } = options;
     const logger = options.logger ?? createLogger({ level: "silent" });
-    const settings = { ...DEFAULTS };
-    for (const key of Object.keys(DEFAULTS)) {
-        if (options[key] !== undefined) settings[key] = options[key];
-    }
 
     const users = await User.find({ skillsUrl: { $exists: true, $nin: [null, ""] } }, { skillsUrl: 1 })
         .sort({ _id: 1 })
@@ -369,7 +355,6 @@ function settingsFromConfig(config) {
 module.exports = {
     crawlAll,
     settingsFromConfig,
-    countValidBadges,
     selectValidBadges,
     normalizeBadgeName,
     isWhitelisted,
@@ -378,5 +363,7 @@ module.exports = {
     competitionWindow,
     isRetryable,
     parseRetryAfter,
-    backoffDelay
+    backoffDelay,
+    ACCEPTED_BADGE_NAMES,
+    DAY_MS
 };

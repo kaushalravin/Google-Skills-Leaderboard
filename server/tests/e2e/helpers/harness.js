@@ -12,11 +12,11 @@ const { setTimeout: sleep } = require("node:timers/promises");
 const { MongoMemoryReplSet } = require("mongodb-memory-server");
 const { MongoClient, ObjectId, BSON } = require("mongodb");
 
+const { childEnv } = require("../../helpers/childProcess");
+
 const SERVER_DIR = path.resolve(__dirname, "../../..");
 const FAKE_GOOGLE = path.join(__dirname, "fakeGoogle.js");
 const ADMIN_KEY = "e2e-admin-key-0123456789abcdefABCDEF";
-// Keep the parent's app settings (e.g. a developer's MONGO_URI) out of the children.
-const APP_ENV_KEYS = /^(NODE_ENV|PORT|MONGO_|LOG_LEVEL|ADMIN_API_KEY|CORS_|TRUST_PROXY|COMPETITION_|CRAWL_|CRON_|LOCK_|RATE_LIMIT_|SUSPICIOUS_|STALE_|ENV_FILE|FAKE_GOOGLE_|TZ$)/;
 
 const profileUrl = (id) => `https://www.skills.google/public_profiles/${id}`;
 /** A badge as a profile shows it; `date` like "Oct 27, 2026" (shown with a US timezone, as on real profiles). */
@@ -25,12 +25,6 @@ const badge = (title, date) => ({ title, earned: `Earned ${date} EDT` });
 // Every public response body, for the PII / internal-detail scans at the end of each file.
 const publicResponses = [];
 const knownEmails = new Set();
-
-function childEnv(overrides) {
-    const env = {};
-    for (const [key, value] of Object.entries(process.env)) if (!APP_ENV_KEYS.test(key)) env[key] = value;
-    return { ...env, ...overrides };
-}
 
 /** One per test file. `newServer()` gives every test its own database and server process. */
 async function startHarness() {
@@ -71,7 +65,6 @@ async function startHarness() {
 
     return {
         replSet,
-        client,
         newServer,
         async stop() {
             for (const server of servers) await server.kill();
@@ -147,6 +140,7 @@ function makeApi({ server, db, scenario, requestLog, dbName, restart }) {
         try {
             json = JSON.parse(text);
         } catch {
+            // Not every response is JSON; tests that care assert on `text` instead.
             json = undefined;
         }
         if (!urlPath.startsWith("/api/admin")) publicResponses.push({ path: urlPath, status: res.status, text });
@@ -307,6 +301,17 @@ function assertPublicResponsesClean() {
     }
 }
 
+function assertErrorShape(res, status, code) {
+    assert.equal(res.status, status, res.text);
+    assert.deepEqual(Object.keys(res.body).sort(), ["error"]);
+    const keys = Object.keys(res.body.error).filter((k) => k !== "details");
+    assert.deepEqual(keys.sort(), ["code", "message", "requestId"]);
+    assert.equal(res.body.error.code, code);
+    assert.equal(typeof res.body.error.message, "string");
+    assert.equal(res.body.error.requestId, res.headers.get("x-request-id"));
+    assertNoInternals(res.text, `${status} ${code}`);
+}
+
 function assertNoInternals(text, where = "") {
     assert.doesNotMatch(text, /\bat [\w.<>]+ \(|node:internal|[A-Za-z]:\\\\|\/(home|Users|usr)\/|\.js:\d+/, `stack/path in ${where}`);
     assert.doesNotMatch(text, /Mongo(Server|Network)?Error|E11000|ECONNREFUSED|buffering timed out|Cast to ObjectId/i, `DB error text in ${where}`);
@@ -333,5 +338,6 @@ module.exports = {
     dumpDb,
     assertPublicResponsesClean,
     assertNoInternals,
+    assertErrorShape,
     ObjectId
 };

@@ -24,7 +24,7 @@ after(async () => {
     await h?.stop();
 });
 
-test("1: accepted badges all earned before Oct 26 give 0 valid badges and the bottom rank", async () => {
+test("accepted badges all earned before Oct 26 give 0 valid badges and the bottom rank", async () => {
     const s = await h.newServer();
     s.setProfiles({
         early: { badges: [badge(T.compute, "Oct 1, 2026"), badge(T.website, "Oct 25, 2026")] },
@@ -40,7 +40,7 @@ test("1: accepted badges all earned before Oct 26 give 0 valid badges and the bo
     assert.equal((await s.userBadges("Early Bird")).length, 2, "pre-start badges are stored, just not counted");
 });
 
-test("2: three accepted badges before Oct 26 and two after count exactly 2", async () => {
+test("three accepted badges before Oct 26 and two after count exactly 2", async () => {
     const s = await h.newServer();
     s.setProfiles({
         mix: {
@@ -61,7 +61,7 @@ test("2: three accepted badges before Oct 26 and two after count exactly 2", asy
     assert.equal((await s.user("Mix")).badgeCount, 2);
 });
 
-test("3: the boundary: Oct 25 doesn't count, Oct 26 does (stored as UTC midnight)", async () => {
+test("the boundary: Oct 25 doesn't count, Oct 26 does (stored as UTC midnight)", async () => {
     const s = await h.newServer();
     s.setProfiles({ edge: { badges: [badge(T.compute, "Oct 25, 2026"), badge(T.website, "Oct 26, 2026")] } });
     await s.ingest(participant("edge", "Edge"));
@@ -74,7 +74,7 @@ test("3: the boundary: Oct 25 doesn't count, Oct 26 does (stored as UTC midnight
     assert.deepEqual(stored.map((r) => r.earnedAt.toISOString()), ["2026-10-25T00:00:00.000Z", "2026-10-26T00:00:00.000Z"]);
 });
 
-test("4: badges that aren't in the CSV are ignored and never persisted", async () => {
+test("badges that aren't in the CSV are ignored and never persisted", async () => {
     const s = await h.newServer();
     s.setProfiles({
         other: {
@@ -93,7 +93,7 @@ test("4: badges that aren't in the CSV are ignored and never persisted", async (
     assert.equal(await s.db.collection("userbadges").countDocuments(), 1);
 });
 
-test("5: the same badge twice on a profile keeps the earliest date (Oct 20), so it doesn't count", async () => {
+test("the same badge twice on a profile keeps the earliest date (Oct 20), so it doesn't count", async () => {
     const s = await h.newServer();
     s.setProfiles({ twice: { badges: [badge(T.vision, "Oct 28, 2026"), badge(T.vision, "Oct 20, 2026")] } });
     await s.ingest(participant("twice", "Twice"));
@@ -104,7 +104,7 @@ test("5: the same badge twice on a profile keeps the earliest date (Oct 20), so 
     assert.equal((await s.row("Twice")).validBadgeCount, 0);
 });
 
-test("6: a malformed date is skipped, not counted, and doesn't break the run", async () => {
+test("a malformed date is skipped, not counted, and doesn't break the run", async () => {
     const s = await h.newServer();
     s.setProfiles({
         odd: { badges: [{ title: T.compute, earned: "Earned recently" }, badge(T.website, "Oct 27, 2026")] }
@@ -117,7 +117,7 @@ test("6: a malformed date is skipped, not counted, and doesn't break the run", a
     assert.deepEqual((await s.userBadges("Odd")).map((r) => r.badge.name), [T.website]);
 });
 
-test("7: all 10 accepted titles after Oct 26 give 10 valid badges and rank 1", async () => {
+test("all 10 accepted titles after Oct 26 give 10 valid badges and rank 1", async () => {
     const s = await h.newServer();
     const titles = Object.values(T);
     s.setProfiles({
@@ -132,7 +132,7 @@ test("7: all 10 accepted titles after Oct 26 give 10 valid badges and rank 1", a
     assert.equal((await s.user("All Ten")).badgeCount, 10);
 });
 
-test("8: ranking by count, then credits, then earlier latest badge; identical triples share a rank; 0-badge last; paging and search keep global ranks", async () => {
+test("ranking by count, then credits, then earlier latest badge; identical triples share a rank; 0-badge last; paging and search keep global ranks", async () => {
     const s = await h.newServer();
     s.setProfiles({
         a: { badges: [badge(T.compute, "Oct 26, 2026"), badge(T.iam, "Oct 27, 2026"), badge(T.vision, "Oct 28, 2026")] },
@@ -180,7 +180,7 @@ test("8: ranking by count, then credits, then earlier latest badge; identical tr
     assert.equal(search.pagination.total, 1);
 });
 
-test("9: progress between crawls raises the count, updates ranks and advances lastSuccessfulUpdate", async () => {
+test("progress between crawls raises the count, updates ranks and advances lastSuccessfulUpdate", async () => {
     const s = await h.newServer();
     const profiles = {
         p: { badges: [badge(T.compute, "Oct 27, 2026")] },
@@ -201,7 +201,7 @@ test("9: progress between crawls raises the count, updates ranks and advances la
     assert.equal((await s.user("Priya")).badgeCount, 3);
 });
 
-test("10: legacy rows (crawl-time stamp, IST midnight) don't count until a crawl corrects them to the profile dates", async () => {
+test("legacy rows (crawl-time stamp, IST midnight) don't count until a crawl corrects them to the profile dates", async () => {
     const s = await h.newServer();
     const [seeded] = await s.seedUsers([{ id: "legacy", username: "Legacy" }]);
     const user = await s.user("Legacy");
@@ -234,7 +234,7 @@ test("10: legacy rows (crawl-time stamp, IST midnight) don't count until a crawl
     assert.equal(seeded.skillsUrl, (await s.user("Legacy")).skillsUrl);
 });
 
-test("11: a participant ingested after a crawl appears with 0 badges and lastSuccessfulUpdate is unchanged", async () => {
+test("a participant ingested after a crawl appears with 0 badges and lastSuccessfulUpdate is unchanged", async () => {
     const s = await h.newServer();
     s.setProfiles({ early: { badges: [badge(T.compute, "Oct 27, 2026")] } });
     await s.ingest(participant("early", "Early"));
@@ -250,6 +250,6 @@ test("11: a participant ingested after a crawl appears with 0 badges and lastSuc
     assert.ok(ObjectId.isValid(after.rows[1].userId));
 });
 
-test("31 (this file): no public response contained an email, '@' or internal details", () => {
+test("no public response in this file contained an email, '@' or internal details", () => {
     assertPublicResponsesClean();
 });

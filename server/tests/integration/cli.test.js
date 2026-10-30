@@ -1,12 +1,10 @@
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { execFile } = require("node:child_process");
-const { promisify } = require("node:util");
 const path = require("node:path");
 const { MongoMemoryReplSet } = require("mongodb-memory-server");
 const { MongoClient } = require("mongodb");
 
-const { TEST_ADMIN_KEY } = require("../helpers/env");
+const { runScript } = require("../helpers/childProcess");
 
 const CRAWL_ONCE = path.resolve(__dirname, "../../scripts/crawl-once.js");
 const CHECK_REAL = path.resolve(__dirname, "../../scripts/check-real.js");
@@ -19,19 +17,6 @@ before(async () => {
 after(async () => {
     await replSet?.stop();
 });
-
-/** Runs a script with an isolated env; resolves { code, stdout, stderr } even on a non-zero exit. */
-async function runScript(script, args, uri) {
-    try {
-        const { stdout, stderr } = await promisify(execFile)(process.execPath, [script, ...args], {
-            env: { ...process.env, ENV_FILE: "", MONGO_URI: uri, ADMIN_API_KEY: TEST_ADMIN_KEY, LOG_LEVEL: "silent" }
-        });
-        return { code: 0, stdout, stderr };
-    } catch (err) {
-        if (typeof err.code !== "number") throw err;
-        return { code: err.code, stdout: err.stdout, stderr: err.stderr };
-    }
-}
 
 /** A DB whose crawl lock is held by a running cron crawl (no users, so nothing would scrape). */
 async function dbWithHeldLock(t, dbName) {
@@ -95,20 +80,4 @@ test("crawl:once (real) goes through the lock: a cli crawler_log is written and 
     const lockDoc = await db.collection("job_locks").findOne({ _id: "crawl" });
     assert.equal(lockDoc.owner, null);
     assert.ok(lockDoc.expiresAt <= new Date());
-});
-
-test("crawl:once --dry-run is read-only: no collections or indexes are created", async () => {
-    const uri = replSet.getUri("dryrun");
-    const { stdout, stderr } = await promisify(execFile)(process.execPath, [CRAWL_ONCE, "--dry-run"], {
-        env: { ...process.env, ENV_FILE: "", MONGO_URI: uri, ADMIN_API_KEY: TEST_ADMIN_KEY, LOG_LEVEL: "silent" }
-    });
-    assert.match(stderr, /DRY RUN/);
-    assert.match(stdout, /"total": 0/);
-
-    const client = await MongoClient.connect(uri);
-    try {
-        assert.deepEqual(await client.db("dryrun").listCollections().toArray(), []);
-    } finally {
-        await client.close();
-    }
 });

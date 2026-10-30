@@ -48,7 +48,7 @@ async function main(argv) {
                 logger,
                 signal: controller.signal
             });
-            if (report) console.table(report);
+            console.table(report);
             console.log(JSON.stringify(summary, null, 2));
             return 0;
         }

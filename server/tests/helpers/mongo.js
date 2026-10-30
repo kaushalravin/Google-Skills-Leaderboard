@@ -7,15 +7,13 @@ const { connectDb, disconnectDb } = require("../../config/db");
  * for the crawl lock and write concerns) and connects Mongoose to it.
  * Call once per test file: node:test runs each file in its own process.
  */
-async function startMongo({ dbName = "leaderboard-test" } = {}) {
+async function startMongo() {
     const replSet = await MongoMemoryReplSet.create({
         replSet: { count: 1, storageEngine: "wiredTiger" }
     });
-    const uri = replSet.getUri(dbName);
-    await connectDb(uri);
+    await connectDb(replSet.getUri("leaderboard-test"));
 
     return {
-        uri,
         async stop() {
             await disconnectDb();
             await replSet.stop();

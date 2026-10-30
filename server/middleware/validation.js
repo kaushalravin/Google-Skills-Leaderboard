@@ -14,4 +14,6 @@ function parse(schema, input) {
     return result.data;
 }
 
-module.exports = { parse };
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+module.exports = { parse, escapeRegex };

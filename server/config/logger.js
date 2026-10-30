@@ -24,4 +24,4 @@ function createLogger({ level = "info" } = {}, destination) {
     );
 }
 
-module.exports = { createLogger, REDACT_PATHS };
+module.exports = { createLogger };
