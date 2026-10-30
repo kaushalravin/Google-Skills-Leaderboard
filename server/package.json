@@ -1,4 +1,20 @@
 {
+  "name": "google-skills-leaderboard-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GDG MIT Google Skills Leaderboard backend",
+  "main": "index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node --test \"tests/unit/**/*.test.js\" \"tests/integration/**/*.test.js\"",
+    "test:e2e": "node --test \"tests/e2e/**/*.test.js\"",
+    "crawl:once": "node scripts/crawl-once.js",
+    "check:real": "node scripts/check-real.js"
+  },
   "dependencies": {
     "axios": "^1.21.0",
     "cheerio": "^1.2.0",
@@ -9,6 +25,15 @@
     "helmet": "^8.3.0",
     "mongoose": "^9.11.4",
     "node-cron": "^4.6.0",
-    "xlsx": "^0.18.5"
+    "p-limit": "^3.1.0",
+    "pino": "^10.4.0",
+    "pino-http": "^11.0.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0",
+    "nock": "^14.0.17",
+    "supertest": "^7.3.1"
   }
 }
