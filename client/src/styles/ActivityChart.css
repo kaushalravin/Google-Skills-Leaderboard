@@ -1,0 +1,82 @@
+.activity-chart {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  background: var(--card-bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+}
+
+.activity-chart__title {
+  margin-bottom: var(--space-3);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.activity-chart__plot {
+  position: relative;
+}
+
+.activity-chart__svg {
+  display: block;
+  overflow: visible;
+}
+
+.activity-chart__grid {
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.activity-chart__axis {
+  stroke: var(--hairline);
+  stroke-width: 1;
+}
+
+/* Sized in px because the viewBox matches the rendered width, so 12px stays 12px on every screen */
+.activity-chart__label {
+  fill: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.activity-chart__bar {
+  fill: var(--brand-blue);
+}
+
+.activity-chart__highlight {
+  fill: var(--blue-light);
+}
+
+.activity-chart__hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.activity-chart__hit:focus,
+.activity-chart__hit:focus-visible {
+  outline: none;
+}
+
+.activity-chart__focus {
+  fill: none;
+  stroke: var(--brand-blue);
+  stroke-width: 2;
+}
+
+.activity-chart__tooltip {
+  position: absolute;
+  padding: var(--space-1) var(--space-2);
+  background: var(--card-bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.activity-chart__tooltip--middle {
+  transform: translateX(-50%);
+}

@@ -1,0 +1,231 @@
+.scoring-info {
+  margin-top: var(--space-5);
+  background: var(--card-bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+}
+
+.scoring-info__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  list-style: none;
+  cursor: pointer;
+}
+
+.scoring-info__summary::-webkit-details-marker {
+  display: none;
+}
+
+.scoring-info__label {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-3);
+  min-width: 0;
+}
+
+.scoring-info__title {
+  font-weight: 600;
+}
+
+.scoring-info__summary-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.scoring-info__chevron {
+  flex: none;
+  color: var(--text-muted);
+  transition: transform var(--transition);
+}
+
+.scoring-info[open] .scoring-info__chevron {
+  transform: rotate(180deg);
+}
+
+.scoring-info__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-4);
+  border-top: 1px solid var(--hairline);
+  font-size: 0.9rem;
+}
+
+.scoring-info__block {
+  min-width: 0;
+}
+
+.scoring-info__heading {
+  margin-bottom: var(--space-2);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.scoring-info__note {
+  color: var(--text-muted);
+}
+
+.scoring-info__badge-head {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-bottom: var(--space-1);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.scoring-info__badge-head > :first-child {
+  flex: 1 1 auto;
+}
+
+.scoring-info__badge {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.scoring-info__badge-link {
+  color: var(--link-text);
+  overflow-wrap: anywhere;
+}
+
+.scoring-info__badge-link:hover {
+  text-decoration: underline;
+}
+
+.scoring-info__credits {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.scoring-info__credits-value {
+  min-width: 2ch;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.scoring-info__credits-bar {
+  width: 56px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--track-empty);
+  overflow: hidden;
+}
+
+.scoring-info__credits-fill {
+  display: block;
+  height: 100%;
+  background: var(--brand-blue);
+}
+
+.scoring-info__earned {
+  min-width: 6.75rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-muted);
+}
+
+/* global.css strips list markers; the ranking steps must stay visibly numbered */
+.scoring-info__steps {
+  margin-bottom: var(--space-3);
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+
+.scoring-info__steps li {
+  padding-left: var(--space-1);
+}
+
+.scoring-info__steps li + li {
+  margin-top: var(--space-1);
+}
+
+.scoring-info__steps li::marker {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.scoring-info__track {
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+.scoring-info__tiers li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.scoring-info__tiers li + li {
+  margin-top: var(--space-1);
+}
+
+.scoring-info__marker {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+}
+
+.scoring-info__marker--silver {
+  background: var(--podium-silver);
+}
+
+.scoring-info__marker--gold {
+  background: var(--podium-gold);
+}
+
+@media (max-width: 575.98px) {
+  .scoring-info__badge-head {
+    display: none;
+  }
+
+  .scoring-info__badge {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-auto-flow: row;
+    row-gap: 0;
+    padding: var(--space-1) 0 var(--space-2);
+  }
+
+  .scoring-info__badges {
+    margin-top: var(--space-2);
+  }
+
+  .scoring-info__badge + .scoring-info__badge {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .scoring-info__badge-link {
+    grid-column: 1 / -1;
+  }
+
+  .scoring-info__earned {
+    min-width: 0;
+  }
+}
+
+/* Course links need a full-size tap area wherever the pointer is a finger */
+@media (max-width: 575.98px), (pointer: coarse) {
+  .scoring-info__badge-link {
+    display: flex;
+    align-items: center;
+    min-height: var(--touch-min);
+    padding: var(--space-1) 0;
+  }
+}
+
+@media (min-width: 992px) {
+  .scoring-info__body {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
