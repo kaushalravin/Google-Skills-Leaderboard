@@ -1,29 +1,23 @@
-/* =============================================
-   CommunityPage.css — Community Page Styles
-   ============================================= */
-
 .community-page {
-  padding: 40px 24px 60px;
-  max-width: 1200px;
+  padding: var(--space-6) var(--space-5) calc(2 * var(--space-6));
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 
 .community-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: var(--space-6);
 }
 
 .community-header__eyebrow {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--blue);
+  color: var(--link-text);
   background: var(--blue-light);
-  padding: 4px 14px;
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
-  margin-bottom: 14px;
+  margin-bottom: var(--space-3);
 }
 
 .community-header__title {
@@ -31,12 +25,12 @@
   font-weight: 700;
   color: var(--ink);
   line-height: 1.25;
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-3);
 }
 
 .community-header__desc {
   font-size: 0.95rem;
-  color: var(--mid);
+  color: var(--text-muted);
   max-width: 640px;
   margin: 0 auto;
   line-height: 1.65;
@@ -45,54 +39,65 @@
 .community-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
 }
 
 .community-card {
-  border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  background: var(--white);
-  padding: 24px 22px;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition), box-shadow var(--transition);
-}
-
-.community-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
+  background: var(--card-bg);
+  padding: var(--space-5);
+  border: 1px solid var(--hairline);
 }
 
 .community-card__accent {
   width: 40px;
   height: 4px;
   border-radius: 2px;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 }
+
+.community-card__accent--blue { background: var(--google-blue); }
+.community-card__accent--green { background: var(--google-green); }
+.community-card__accent--yellow { background: var(--google-yellow); }
+.community-card__accent--red { background: var(--google-red); }
 
 .community-card__title {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--ink);
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-3);
 }
 
 .community-card__desc {
   font-size: 0.88rem;
-  color: var(--mid);
+  color: var(--text-muted);
   line-height: 1.65;
   margin: 0;
 }
 
-.community-disclaimer {
-  text-align: center;
-  font-size: 0.82rem;
-  color: var(--mid);
-  margin-top: 24px;
+.community-card__desc a {
+  color: var(--link-text);
+  font-weight: 500;
+  text-decoration: underline;
 }
 
-@media (max-width: 640px) {
+.community-disclaimer {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: var(--space-5);
+}
+
+/* Inline padding grows the tap area to 44px without moving the text around it */
+@media (hover: none) and (pointer: coarse) {
+  .community-card__desc a {
+    padding: 0.8rem 0;
+  }
+}
+
+@media (max-width: 575.98px) {
   .community-page {
-    padding: 28px 16px 40px;
+    padding: var(--space-5) var(--space-4) var(--space-6);
   }
 }

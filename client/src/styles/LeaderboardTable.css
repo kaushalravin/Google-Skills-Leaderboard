@@ -1,65 +1,101 @@
-/* =============================================
-   LeaderboardTable.css — Wide Table Styles
-   ============================================= */
-
+/* overflow: clip rounds the corners without becoming a scroll container, so the header can stick to the page */
 .wider-table-container {
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #dee2e6;
-  background-color: #ffffff;
+  overflow: clip;
+  border: 1px solid var(--hairline);
+  background-color: var(--card-bg);
 }
 
-/* Base table */
-.table {
-  font-family: 'Poppins', sans-serif;
-  background-color: #ffffff;
+.lb-table {
+  --bs-table-bg: var(--card-bg);
+  --bs-table-color: var(--ink);
+  --bs-table-border-color: var(--hairline);
+  --bs-table-hover-bg: var(--surface);
+  --bs-table-hover-color: var(--ink);
+  /* The container draws the outer edge; hidden outer cell borders avoid a doubled line */
+  border-style: hidden;
+  color: var(--ink);
+  background-color: var(--card-bg);
   margin-bottom: 0;
   vertical-align: middle;
   width: 100%;
 }
 
-.table th {
-  font-weight: 700;
+.lb-table th {
+  font-weight: 600;
   font-size: 1rem;
-  padding: 14px 18px;
+  padding: var(--space-3) var(--space-4);
   vertical-align: middle;
-  border-color: #b6d4fe;
 }
 
-.table td {
+.lb-table td {
   font-size: 1rem;
-  padding: 13px 18px;
+  padding: var(--space-3) var(--space-4);
   vertical-align: middle;
-  border-color: #dee2e6;
 }
 
-/* Light blue table header from reference */
-.table-primary {
-  --bs-table-bg: #cfe2ff;
-  --bs-table-border-color: #b6d4fe;
-  color: #000000;
+/* Collapsed borders don't travel with a sticky cell, so the header draws its own bottom line */
+.lb-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  color: var(--ink);
+  background-color: var(--blue-light);
+  box-shadow: inset 0 -1px 0 var(--hairline);
 }
 
-.highlight-row {
-  transition: background-color 0.15s ease;
+.lb-table .col-rank,
+.lb-table .col-credits {
+  font-variant-numeric: tabular-nums;
 }
 
-.highlight-row:hover {
-  background-color: #f8fafd;
+.lb-none {
+  color: var(--text-muted);
 }
 
-/* Profile Google Cloud icon */
+.rank-cell {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.rank-cell__move {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  margin-left: var(--space-1);
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.rank-move {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-move--up {
+  color: var(--rank-up);
+}
+
+.rank-move--down {
+  color: var(--rank-down);
+}
+
+.rank-move--new {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .profile-cloud-link {
   display: inline-flex;
+  vertical-align: middle;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease;
-}
-
-.profile-cloud-link:hover {
-  transform: scale(1.18);
+  border-radius: var(--radius-sm);
 }
 
 .skills-cloud-icon {
@@ -67,64 +103,339 @@
   vertical-align: middle;
 }
 
-/* View Badges Button in table cell */
 .view-badges-btn {
-  border-radius: 20px;
-  font-size: 0.92rem;
-  font-weight: 600;
-  padding: 5px 16px;
-  transition: all 0.2s ease;
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
   white-space: nowrap;
-  border-color: #4285F4;
-  color: #4285F4;
+}
+
+@media (pointer: coarse) {
+  .view-badges-btn {
+    min-height: var(--touch-min);
+    justify-content: center;
+  }
 }
 
 .view-badges-btn:hover {
-  background-color: #4285F4;
-  border-color: #4285F4;
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(66, 133, 244, 0.25);
+  background-color: var(--blue-light);
+  border-color: var(--hairline);
 }
 
-/* Status icon checkmark */
-.green {
-  color: #34a853 !important;
+.view-badges-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
-.status-icon {
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1;
+.view-badges-btn__summary {
+  display: none;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Pagination buttons */
-.btn-outline-primary {
-  font-family: 'Poppins', sans-serif;
+.lb-table .col-rank,
+.lb-table .col-badges,
+.lb-table .col-credits,
+.lb-table .col-swags {
+  white-space: nowrap;
+}
+
+/* Fixed widths act as minimums in an auto-layout table, so only apply them where the name column still has room. */
+@media (min-width: 992px) {
+  .lb-table th { white-space: nowrap; }
+  .lb-table .col-rank { width: 100px; }
+  .lb-table .col-profile { width: 180px; }
+  .lb-table .col-badges { width: 170px; }
+  .lb-table .col-credits { width: 120px; }
+  .lb-table .col-swags { width: 130px; }
+}
+
+.lb-table .col-name {
+  overflow-wrap: anywhere;
+}
+
+.name-cell {
+  display: block;
+}
+
+.name-link {
+  /* Contains the visually hidden "(opens in a new tab)", which would otherwise widen the page past a truncated name */
+  position: relative;
+  display: none;
+  color: var(--link-text);
+  text-decoration: underline;
+}
+
+.name-cell__swag {
+  display: none;
+}
+
+.lb-table .swag-tag-gold,
+.lb-table .swag-tag-silver {
+  padding: 2px 10px;
+  vertical-align: middle;
+}
+
+/* Placeholders take the size of the content they stand in for, so rows don't shift when data arrives */
+.lb-ph {
+  min-height: 0;
+  vertical-align: middle;
+  border-radius: var(--radius-sm);
+}
+
+.lb-ph--rank { width: 1.5em; height: 1em; }
+.lb-ph--name { width: 60%; max-width: 220px; height: 1em; }
+.lb-ph--icon { width: 26px; height: 26px; }
+.lb-ph--num { width: 2em; height: 1em; }
+.lb-ph--pill { width: 52px; height: 25px; border-radius: var(--radius-pill); }
+.lb-ph--track { width: 92px; height: 20px; }
+.lb-ph-line { display: block; }
+.lb-ph--summary { width: 9em; height: 1em; vertical-align: top; }
+
+.view-badges-btn.is-placeholder:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
+.lb-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.lb-pagination__numbers {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.lb-pagination__compact,
+.lb-pagination__arrow {
+  display: none;
+}
+
+.lb-pagination__gap {
+  color: var(--text-muted);
+}
+
+.lb-pagination .btn-outline-primary {
+  --bs-btn-color: var(--link-text);
+  --bs-btn-border-color: var(--hairline);
+  --bs-btn-hover-color: var(--link-text);
+  --bs-btn-hover-bg: var(--blue-light);
+  --bs-btn-hover-border-color: var(--hairline);
+  --bs-btn-active-color: var(--on-accent);
+  --bs-btn-active-bg: var(--brand-blue);
+  --bs-btn-active-border-color: var(--brand-blue);
+  --bs-btn-disabled-color: var(--text-muted);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: var(--hairline);
   font-weight: 500;
-  border-color: #4285F4;
-  color: #4285F4;
-  border-radius: 6px;
-  padding: 6px 14px;
-  transition: all 0.15s ease;
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  /* Bootstrap fades button colours; hover states here are instant */
+  transition: none;
 }
 
-.btn-outline-primary:hover:not(:disabled) {
-  background-color: #4285F4;
-  border-color: #4285F4;
-  color: #ffffff;
+.lb-pagination .btn-outline-primary:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  box-shadow: none;
 }
 
-.btn-outline-primary.active,
-.btn-outline-primary:disabled.active {
-  background-color: #4285F4 !important;
-  border-color: #4285F4 !important;
-  color: #ffffff !important;
+.lb-pagination .btn-outline-primary.active,
+.lb-pagination .btn-outline-primary:disabled.active {
+  background-color: var(--brand-blue);
+  border-color: var(--brand-blue);
+  color: var(--on-accent);
   opacity: 1;
 }
 
-.btn-outline-primary:disabled:not(.active) {
-  border-color: #dee2e6;
-  color: #6c757d;
+.lb-pagination .btn-outline-primary:disabled:not(.active) {
   opacity: 0.65;
+}
+
+@media (pointer: coarse) {
+  .lb-pagination .btn {
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+}
+
+@media (max-width: 991.98px) {
+  .lb-table .col-profile {
+    display: none;
+  }
+
+  .name-text {
+    display: none;
+  }
+
+  .name-link {
+    display: inline;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .lb-table th,
+  .lb-table td {
+    padding: var(--space-3) var(--space-2);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .lb-table .col-credits,
+  .lb-table .col-swags {
+    display: none;
+  }
+
+  .lb-table th {
+    font-size: 0.875rem;
+    padding: var(--space-2);
+  }
+
+  .lb-table td {
+    font-size: 0.9375rem;
+    padding: var(--space-2) var(--space-1);
+  }
+
+  .lb-table .col-rank {
+    width: auto;
+    min-width: 40px;
+  }
+
+  .rank-cell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .rank-cell__move {
+    position: static;
+    margin-left: 0;
+    transform: none;
+    line-height: 1;
+  }
+
+  /* A zero-width cell lets the name take only the space left over, so long names truncate instead of widening the table */
+  .lb-table td.col-name {
+    width: 100%;
+    max-width: 0;
+  }
+
+  .name-link {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .name-cell__swag {
+    display: block;
+    margin-top: var(--space-1);
+    line-height: 1;
+  }
+
+  .lb-table .swag-tag-gold,
+  .lb-table .swag-tag-silver {
+    padding: 2px var(--space-2);
+  }
+
+  .view-badges-btn {
+    display: flex;
+    width: 100%;
+    min-height: var(--touch-min);
+    justify-content: center;
+    padding: var(--space-1);
+  }
+
+  .view-badges-btn__summary {
+    display: block;
+  }
+
+  .lb-ph--track { width: 80px; height: 19px; }
+  .lb-ph--pill { height: 18px; vertical-align: top; }
+
+  .lb-pagination {
+    flex-wrap: nowrap;
+  }
+
+  .lb-pagination__numbers {
+    display: none;
+  }
+
+  .lb-pagination__compact {
+    display: inline-flex;
+    gap: var(--space-2);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .lb-pagination__arrow {
+    display: inline;
+  }
+
+  .lb-pagination .btn {
+    min-height: var(--touch-min);
+    padding: var(--space-2) var(--space-3);
+    white-space: nowrap;
+  }
+}
+
+.lb-message {
+  margin: var(--space-3) 0;
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--ink);
+}
+
+.lb-retry {
+  min-height: var(--touch-min);
+  padding: var(--space-2) var(--space-5);
+  font-weight: 600;
+  color: var(--on-accent);
+  background: var(--brand-blue);
+  border: 1px solid var(--brand-blue);
+  border-radius: var(--radius-sm);
+}
+
+/* Fixed narrow columns below 992px too, so the loading placeholder and the real rows lay out identically */
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .lb-table .col-rank { width: 84px; }
+  .lb-table .col-badges { width: 150px; }
+  .lb-table .col-credits { width: 92px; }
+  .lb-table .col-swags { width: 104px; }
+}
+
+@media (max-width: 575.98px) {
+  .lb-table .col-rank { width: 52px; }
+  /* Wide enough for the longest summary, "10 badges · 60 credits", so the placeholder and real rows match */
+  .lb-table .view-badges-btn { min-width: 164px; }
+
+  /* Keeps the name link and the badges button at least 8px apart */
+  .lb-table td.col-name { padding-right: var(--space-2); }
+  .lb-table td.col-badges { padding-left: var(--space-2); }
+}
+
+/* A taller tap area for the name link without changing the row height */
+@media (pointer: coarse), (max-width: 575.98px) {
+  .lb-table .name-link {
+    padding-block: 11px;
+    margin-block: -11px;
+  }
 }
