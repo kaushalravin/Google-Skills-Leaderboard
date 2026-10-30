@@ -1,0 +1,113 @@
+/* =============================================
+   Navbar.css — Navigation Bar Styles
+   Bigger header with high-impact typography
+   ============================================= */
+
+.site-header {
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8f9fa !important;
+  padding: 22px 48px;
+  width: 100%;
+}
+
+.header-logo {
+  width: 105px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.06);
+}
+
+.header-title {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.header-title-mobile {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Nav bar */
+.site-navbar {
+  border-bottom: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  padding: 0.75rem 1.5rem;
+  background-color: #ffffff !important;
+}
+
+.site-navbar .nav-link {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #212529;
+  padding: 0.6rem 1.4rem;
+  transition: color 0.15s ease;
+}
+
+.site-navbar .nav-link:hover {
+  color: #4285F4;
+}
+
+.site-navbar .nav-link.active {
+  color: #4285F4 !important;
+  font-weight: 600;
+}
+
+.btn-link-nav {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border: 1px solid #dee2e6;
+  padding: 0.5rem 0;
+}
+
+.dropdown-item {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  padding: 0.6rem 1.5rem;
+  color: #212529;
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f3f4;
+  color: #4285F4;
+}
+
+@media (max-width: 768px) {
+  .site-header {
+    padding: 16px 20px;
+  }
+  .header-logo {
+    width: 65px;
+  }
+  .header-title {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .header-logo {
+    width: 52px;
+  }
+  .site-header {
+    justify-content: start;
+    gap: 12px;
+  }
+}

@@ -1,0 +1,130 @@
+/* =============================================
+   LeaderboardTable.css — Wide Table Styles
+   ============================================= */
+
+.wider-table-container {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #dee2e6;
+  background-color: #ffffff;
+}
+
+/* Base table */
+.table {
+  font-family: 'Poppins', sans-serif;
+  background-color: #ffffff;
+  margin-bottom: 0;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.table th {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 14px 18px;
+  vertical-align: middle;
+  border-color: #b6d4fe;
+}
+
+.table td {
+  font-size: 1rem;
+  padding: 13px 18px;
+  vertical-align: middle;
+  border-color: #dee2e6;
+}
+
+/* Light blue table header from reference */
+.table-primary {
+  --bs-table-bg: #cfe2ff;
+  --bs-table-border-color: #b6d4fe;
+  color: #000000;
+}
+
+.highlight-row {
+  transition: background-color 0.15s ease;
+}
+
+.highlight-row:hover {
+  background-color: #f8fafd;
+}
+
+/* Profile Google Cloud icon */
+.profile-cloud-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.profile-cloud-link:hover {
+  transform: scale(1.18);
+}
+
+.skills-cloud-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* View Badges Button in table cell */
+.view-badges-btn {
+  border-radius: 20px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 5px 16px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border-color: #4285F4;
+  color: #4285F4;
+}
+
+.view-badges-btn:hover {
+  background-color: #4285F4;
+  border-color: #4285F4;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(66, 133, 244, 0.25);
+}
+
+/* Status icon checkmark */
+.green {
+  color: #34a853 !important;
+}
+
+.status-icon {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Pagination buttons */
+.btn-outline-primary {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  border-color: #4285F4;
+  color: #4285F4;
+  border-radius: 6px;
+  padding: 6px 14px;
+  transition: all 0.15s ease;
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background-color: #4285F4;
+  border-color: #4285F4;
+  color: #ffffff;
+}
+
+.btn-outline-primary.active,
+.btn-outline-primary:disabled.active {
+  background-color: #4285F4 !important;
+  border-color: #4285F4 !important;
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+.btn-outline-primary:disabled:not(.active) {
+  border-color: #dee2e6;
+  color: #6c757d;
+  opacity: 0.65;
+}

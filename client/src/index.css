@@ -1,0 +1,13 @@
+/* =============================================
+   index.css — Root stylesheet entry point.
+   Imports all component-level stylesheets.
+   ============================================= */
+
+@import './styles/variables.css';
+@import './styles/global.css';
+@import './styles/Navbar.css';
+@import './styles/LeaderboardPage.css';
+@import './styles/LeaderboardTable.css';
+@import './styles/BadgeModal.css';
+@import './styles/Footer.css';
+@import './styles/CommunityPage.css';

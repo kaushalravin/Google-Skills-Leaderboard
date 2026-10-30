@@ -1,0 +1,98 @@
+/* =============================================
+   CommunityPage.css — Community Page Styles
+   ============================================= */
+
+.community-page {
+  padding: 40px 24px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.community-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.community-header__eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--blue);
+  background: var(--blue-light);
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 14px;
+}
+
+.community-header__title {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+  margin: 0 0 14px;
+}
+
+.community-header__desc {
+  font-size: 0.95rem;
+  color: var(--mid);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.community-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  padding: 24px 22px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.community-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.community-card__accent {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 16px;
+}
+
+.community-card__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.community-card__desc {
+  font-size: 0.88rem;
+  color: var(--mid);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.community-disclaimer {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--mid);
+  margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+  .community-page {
+    padding: 28px 16px 40px;
+  }
+}

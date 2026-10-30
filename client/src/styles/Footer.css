@@ -1,0 +1,51 @@
+/* =============================================
+   Footer.css — Footer Styles
+   ============================================= */
+
+.footer {
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  padding: 20px 24px;
+  margin-top: auto;
+}
+
+.footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footer__copy {
+  font-size: 0.82rem;
+  color: var(--mid);
+  margin: 0;
+}
+
+.footer__links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer__links a {
+  font-size: 0.82rem;
+  color: var(--blue);
+  font-weight: 500;
+  text-decoration: none;
+  transition: text-decoration var(--transition);
+}
+
+.footer__links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 540px) {
+  .footer__inner {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+}
