@@ -1,10 +1,10 @@
 /**
  * Google Form -> leaderboard participant ingestion (POST /api/admin/participants).
  *
- * Setup (in the Apps Script project bound to the form's RESPONSE SPREADSHEET):
+ * Setup (in the Apps Script project bound to the form's response spreadsheet):
  *   1. Extensions > Apps Script, paste this file.
  *   2. Project Settings > Script Properties:
- *        INGEST_URL     = https://<your-host>/api/admin/participants
+ *        INGEST_URL     = https://<host>/api/admin/participants
  *        ADMIN_API_KEY  = the server's ADMIN_API_KEY
  *   3. Triggers > Add Trigger: function onFormSubmit, event source "From spreadsheet",
  *      event type "On form submit". Authorize when asked.
@@ -58,7 +58,7 @@ function mapRow_(namedValues) {
   return row;
 }
 
-/** POSTs JSON; retries network errors, 429 and 5xx with exponential backoff + jitter. */
+/** Retries network errors, 429 and 5xx with exponential backoff and jitter. */
 function postWithRetry_(payload) {
   var props = PropertiesService.getScriptProperties();
   var url = props.getProperty("INGEST_URL");
