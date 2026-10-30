@@ -22,6 +22,7 @@ participantsRouter.use((req, res, next) => {
 });
 participantsRouter.use(requireAdmin);
 
+//used for upserting a participant row or multiple rows. Returns a summary of the operation.
 participantsRouter.post("/", async (req, res) => {
     const parsed = rowsSchema.safeParse(toRows(req.body));
     if (!parsed.success) {
