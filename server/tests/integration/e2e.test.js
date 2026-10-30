@@ -39,7 +39,7 @@ const scraped = (name, date) => ({
 test("ingest → POST /api/admin/crawl → status done → GET /api/leaderboard ranks → health ok", async () => {
     const people = {
         asha: [scraped(COMPUTE, "2026-10-27"), scraped(WEBSITE, "2026-10-28")],
-        ezra: [scraped(VISION, "2026-10-26"), scraped(WEBSITE, "2026-10-28")], // same count + latest date as asha → tie
+        ezra: [scraped(COMPUTE, "2026-10-26"), scraped(WEBSITE, "2026-10-28")], // same count, credits, latest date as asha → tie
         ben: [scraped(COMPUTE, "2026-10-27"), scraped(WEBSITE, "2026-10-30")], // same count, later → below
         chen: [scraped(VISION, "2026-10-29"), scraped(COMPUTE, "2026-10-20")], // one valid (pre-start excluded)
         dana: []
@@ -99,13 +99,13 @@ test("ingest → POST /api/admin/crawl → status done → GET /api/leaderboard 
     assert.equal(board.status, 200);
     assert.equal(board.body.lastSuccessfulUpdate, status.lastSuccessfulUpdate);
     assert.deepEqual(
-        board.body.rows.map((r) => [r.rank, r.username, r.validBadgeCount]),
+        board.body.rows.map((r) => [r.rank, r.username, r.validBadgeCount, r.validCredits]),
         [
-            [1, "asha", 2],
-            [1, "ezra", 2],
-            [3, "ben", 2],
-            [4, "chen", 1],
-            [5, "dana", 0]
+            [1, "asha", 2, 17],
+            [1, "ezra", 2, 17],
+            [3, "ben", 2, 17],
+            [4, "chen", 1, 12],
+            [5, "dana", 0, 0]
         ]
     );
     assert.doesNotMatch(JSON.stringify(board.body), /@/, "no emails on the public API");

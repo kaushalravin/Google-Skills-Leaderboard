@@ -132,42 +132,51 @@ test("7: all 10 accepted titles after Oct 26 give 10 valid badges and rank 1", a
     assert.equal((await s.user("All Ten")).badgeCount, 10);
 });
 
-test("8: ranking by count, then earlier latest badge; identical pairs share a rank; 0-badge last; paging and search keep global ranks", async () => {
+test("8: ranking by count, then credits, then earlier latest badge; identical triples share a rank; 0-badge last; paging and search keep global ranks", async () => {
     const s = await h.newServer();
     s.setProfiles({
         a: { badges: [badge(T.compute, "Oct 26, 2026"), badge(T.iam, "Oct 27, 2026"), badge(T.vision, "Oct 28, 2026")] },
         b: { badges: [badge(T.compute, "Oct 26, 2026"), badge(T.website, "Oct 27, 2026")] },
-        c: { badges: [badge(T.storage, "Oct 26, 2026"), badge(T.vision, "Oct 27, 2026")] },
+        c: { badges: [badge(T.iam, "Oct 26, 2026"), badge(T.website, "Oct 27, 2026")] },
         d: { badges: [badge(T.compute, "Oct 26, 2026"), badge(T.website, "Oct 29, 2026")] },
         e: { badges: [] },
-        f: { mode: "noBadges" }
+        f: { mode: "noBadges" },
+        // Same count: more credits beats an earlier date, and the other way round.
+        g: { badges: [badge(T.storage, "Oct 26, 2026"), badge(T.speechApi, "Oct 26, 2026")] },
+        h: { badges: [badge(T.genAi, "Oct 30, 2026"), badge(T.vision, "Oct 30, 2026")] }
     });
     await s.ingest([
         participant("f", "Fay"),
         participant("d", "Dev"),
         participant("b", "Ben"),
+        participant("g", "Gus"),
         participant("e", "Eli"),
         participant("c", "Cara"),
+        participant("h", "Hana"),
         participant("a", "Asha")
     ]);
     await s.crawl();
 
     const board = await s.board();
-    assert.deepEqual(board.rows.map((r) => [r.rank, r.username, r.validBadgeCount]), [
-        [1, "Asha", 3],
-        [2, "Ben", 2],
-        [2, "Cara", 2],
-        [4, "Dev", 2],
-        [5, "Eli", 0],
-        [5, "Fay", 0]
+    assert.deepEqual(board.rows.map((r) => [r.rank, r.username, r.validBadgeCount, r.validCredits]), [
+        [1, "Asha", 3, 20],
+        [2, "Hana", 2, 28],
+        [3, "Ben", 2, 17],
+        [3, "Cara", 2, 17],
+        [5, "Dev", 2, 17],
+        [6, "Gus", 2, 7],
+        [7, "Eli", 0, 0],
+        [7, "Fay", 0, 0]
     ]);
+    const hana = await s.board(`/${board.rows[1].userId}`);
+    assert.deepEqual([hana.rank, hana.validBadgeCount, hana.validCredits], [2, 2, 28]);
 
     const page2 = await s.board("?page=2&limit=2");
-    assert.deepEqual(page2.rows.map((r) => [r.rank, r.username]), [[2, "Cara"], [4, "Dev"]]);
-    assert.deepEqual(page2.pagination, { page: 2, limit: 2, total: 6, totalPages: 3 });
+    assert.deepEqual(page2.rows.map((r) => [r.rank, r.username]), [[3, "Ben"], [3, "Cara"]]);
+    assert.deepEqual(page2.pagination, { page: 2, limit: 2, total: 8, totalPages: 4 });
 
     const search = await s.board("?search=dev");
-    assert.deepEqual(search.rows.map((r) => [r.rank, r.username]), [[4, "Dev"]]);
+    assert.deepEqual(search.rows.map((r) => [r.rank, r.username]), [[5, "Dev"]]);
     assert.equal(search.pagination.total, 1);
 });
 

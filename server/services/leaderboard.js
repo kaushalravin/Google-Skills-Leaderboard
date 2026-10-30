@@ -2,15 +2,16 @@ const { User } = require("../models/users");
 require("../models/badges"); // registers Badge for populate
 const { UserBadge } = require("../models/userBadges");
 const { Leaderboard } = require("../models/leaderboard");
-const { selectValidBadges, competitionWindow } = require("./crawl");
+const { selectValidBadges, competitionWindow, badgeCredits } = require("./crawl");
 
 const SNAPSHOT_ID = "current";
 
 const time = (date) => (date ? date.getTime() : 0);
 
-/** validBadgeCount desc, then latestValidBadgeAt asc (earlier finisher first), then username. */
+/** validBadgeCount desc, validCredits desc, latestValidBadgeAt asc (earlier finisher first), then username. */
 function compareRows(a, b) {
     if (a.validBadgeCount !== b.validBadgeCount) return b.validBadgeCount - a.validBadgeCount;
+    if (a.validCredits !== b.validCredits) return b.validCredits - a.validCredits;
     if (time(a.latestValidBadgeAt) !== time(b.latestValidBadgeAt)) {
         return time(a.latestValidBadgeAt) - time(b.latestValidBadgeAt);
     }
@@ -18,12 +19,13 @@ function compareRows(a, b) {
     return String(a.userId) < String(b.userId) ? -1 : 1;
 }
 
-/** Standard competition ranking: only an identical (count, date) pair shares a rank (1, 1, 3). */
+/** Standard competition ranking: only an identical (count, credits, date) triple shares a rank (1, 1, 3). */
 function assignRanks(rows) {
     rows.forEach((row, i) => {
         const prev = rows[i - 1];
         const tied = prev
             && prev.validBadgeCount === row.validBadgeCount
+            && prev.validCredits === row.validCredits
             && time(prev.latestValidBadgeAt) === time(row.latestValidBadgeAt);
         row.rank = tied ? prev.rank : i + 1;
     });
@@ -69,6 +71,7 @@ async function buildAndReplace({ lastSuccessfulUpdate, startDate = "2026-10-26",
             username: user.username,
             skillsUrl: user.skillsUrl,
             validBadgeCount: valid.length,
+            validCredits: valid.reduce((sum, r) => sum + badgeCredits(r.badge.name), 0),
             latestValidBadgeAt: valid.length ? valid[valid.length - 1].earnedAt : null,
             badges: valid.map((r) => ({ name: r.badge.name, imageUrl: r.badge.imageUrl ?? null, earnedAt: r.earnedAt }))
         };
@@ -92,4 +95,4 @@ async function getSnapshot() {
     return Leaderboard.findById(SNAPSHOT_ID).lean();
 }
 
-module.exports = { rebuildLeaderboard, getSnapshot, SNAPSHOT_ID };
+module.exports = { rebuildLeaderboard, getSnapshot, compareRows, assignRanks, SNAPSHOT_ID };

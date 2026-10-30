@@ -56,7 +56,7 @@ The diagrams are in the README, under Architecture.
 - `../docs/google-form-apps-script.gs`: Google Form → ingestion endpoint.
 
 ## Business rules (with the reason for each)
-- **Whitelist: 10 skill badges, from `data/Accepted Badges.csv`.** The protected scraper filters scraped badges by this file, and `crawl.js` loads it with the same normalization (trim, collapse spaces, lowercase) for counting. This way old non-whitelisted rows never count.
+- **Whitelist: 10 skill badges, from `data/Accepted Badges.csv`.** The protected scraper filters scraped badges by this file, and `crawl.js` loads it (name → credits) with the same normalization (trim, collapse spaces, lowercase) for counting and credits. This way old non-whitelisted rows never count.
 - **Date rule: the displayed profile date must be on or after `COMPETITION_START_DATE` (2026-10-26), and on or before `COMPETITION_END_DATE` if set.** Profiles show only a calendar date, which is stored as UTC midnight (hence TZ=UTC).
   - Accepted edge: if profiles display US time, badges earned 00:00–09:29 IST on Oct 26 show as Oct 25 and don't count. The profile date is the source of truth.
 - **A null date never counts.** The scraper returns `earnedAt: null` when it can't parse a date. Such badges are skipped and logged, never defaulted to "now".
@@ -81,8 +81,10 @@ The diagrams are in the README, under Architecture.
   5. otherwise `success`.
 
   `lastSuccessfulUpdate` is the `finishedAt` of the latest `success`/`partial` run.
-- **Ranking**: `validBadgeCount` desc, then `latestValidBadgeAt` asc (earlier finisher ranks higher).
-  - Only an identical (count, date) pair shares a rank (1, 1, 3); display order within a rank is by username.
+- **Ranking**: `validBadgeCount` desc, then `validCredits` desc, then `latestValidBadgeAt` asc (earlier finisher ranks higher).
+  - `validCredits` is the CSV's `# of credits required` summed over the counted badges (once per badge name; 0-credit badges still count as badges). It is computed in the rebuild from the CSV because the protected `User.credits` is legacy data from the old code and unreliable; never read or write it.
+  - Only an identical (count, credits, date) triple shares a rank (1, 1, 3); display order within a rank is by username.
+  - A snapshot built before `validCredits` existed is served with `validCredits: null` (unknown, not 0) until the next rebuild.
   - Zero-badge users share the last rank.
 - **Snapshot**: rebuilt after every `success`/`partial` run (still holding the lock) and after every ingestion with ≥ 1 write. Ingestion keeps the existing `lastSuccessfulUpdate` and never fakes a crawl time.
   - Rebuilds run one at a time in the process, so an older rebuild can't overwrite a newer one.

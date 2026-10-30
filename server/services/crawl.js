@@ -37,19 +37,20 @@ function normalizeBadgeName(name) {
     return String(name).trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-function loadAcceptedBadgeNames() {
+/** Map<normalizedName, credits> from the CSV. */
+function loadAcceptedBadges() {
     const workbook = XLSX.readFile(ACCEPTED_BADGES_PATH);
     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
-    return new Set(
+    return new Map(
         rows
             .map((row) => [normalizeBadgeName(row["Course Name"]), Number(row["# of credits required"])])
             .filter(([name, credits]) => name && Number.isFinite(credits))
-            .map(([name]) => name)
     );
 }
 
-const acceptedBadgeNames = loadAcceptedBadgeNames();
-const isWhitelisted = (name) => acceptedBadgeNames.has(normalizeBadgeName(name));
+const acceptedBadges = loadAcceptedBadges();
+const isWhitelisted = (name) => acceptedBadges.has(normalizeBadgeName(name));
+const badgeCredits = (name) => acceptedBadges.get(normalizeBadgeName(name)) ?? 0;
 
 /** Inclusive start; end (if set) is exclusive at the following UTC midnight. */
 function competitionWindow({ startDate, endDate }) {
@@ -372,6 +373,7 @@ module.exports = {
     selectValidBadges,
     normalizeBadgeName,
     isWhitelisted,
+    badgeCredits,
     isValidEarnedAt,
     competitionWindow,
     isRetryable,

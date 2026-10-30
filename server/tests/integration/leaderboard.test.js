@@ -19,6 +19,10 @@ const VISION = "Analyze Images with the Cloud Vision API";
 const SPEECH = "Using the Google Cloud Speech API";
 const IAM = "Configure Service Accounts and IAM Roles for Google Cloud";
 const STUDIO = "Develop AI-Powered Prototypes in Google AI Studio";
+const GEMINI = "Create Your First Gemini Enterprise Application";
+const LANGUAGE = "Implement Speech and Language Solutions with Pre-trained APIs";
+const AGENT = "Explore Generative AI in Agent Platform";
+// Credits from the CSV: COMPUTE 4, WEBSITE 13, VISION 12, SPEECH 4, IAM 4, LANGUAGE 4, AGENT 16, STUDIO 0, GEMINI 0.
 
 let mongo;
 let app;
@@ -74,9 +78,9 @@ async function dbState() {
 }
 
 const list = (query = "") => request(app).get(`/api/leaderboard${query}`);
-const summary = (rows) => rows.map((r) => [r.rank, r.username, r.validBadgeCount]);
+const summary = (rows) => rows.map((r) => [r.rank, r.username, r.validBadgeCount, r.validCredits]);
 
-test("ranks by count desc, then latest valid badge asc; ties share a rank (1,1,3); zero-badge users share the last rank", async () => {
+test("ranks by count desc, then credits desc, then latest valid badge asc; ties share a rank (1,1,3); zero-badge users share the last rank", async () => {
     // Created out of name order so display order inside a rank must come from username.
     const bravo = await makeUser("Bravo");
     const alpha = await makeUser("Alpha");
@@ -104,13 +108,13 @@ test("ranks by count desc, then latest valid badge asc; ties share a rank (1,1,3
     assert.equal(res.status, 200);
     assert.match(res.headers["cache-control"], /public, max-age=30/);
     assert.deepEqual(summary(res.body.rows), [
-        [1, "Delta", 3],
-        [2, "Alpha", 2],
-        [2, "Bravo", 2],
-        [4, "Charlie", 2],
-        [5, "Golf", 1],
-        [6, "Echo", 0],
-        [6, "Zulu", 0]
+        [1, "Delta", 3, 29],
+        [2, "Alpha", 2, 17],
+        [2, "Bravo", 2, 17],
+        [4, "Charlie", 2, 17],
+        [5, "Golf", 1, 4],
+        [6, "Echo", 0, 0],
+        [6, "Zulu", 0, 0]
     ]);
     assert.equal(res.body.lastSuccessfulUpdate, last.toISOString());
     assert.equal(res.body.competitionStartDate, "2026-10-26T00:00:00.000Z");
@@ -123,6 +127,76 @@ test("ranks by count desc, then latest valid badge asc; ties share a rank (1,1,3
     assert.deepEqual(deltaRow.badges.map((b) => b.name), [COMPUTE, WEBSITE, VISION]);
     assert.equal(res.body.rows[5].latestValidBadgeAt, null);
     assert.deepEqual(res.body.rows[5].badges, []);
+});
+
+test("equal count: more credits ranks higher even when its latest badge is later", async () => {
+    const early = await makeUser("Early");
+    const rich = await makeUser("Rich");
+    await award(early, COMPUTE, "2026-10-26");
+    await award(early, SPEECH, "2026-10-26");
+    await award(rich, VISION, "2026-10-28");
+    await award(rich, WEBSITE, "2026-10-30");
+    await rebuildLeaderboard({});
+
+    assert.deepEqual(summary((await list()).body.rows), [[1, "Rich", 2, 25], [2, "Early", 2, 8]]);
+});
+
+test("equal count and credits: the earlier latest badge ranks higher; an identical triple shares a rank (1, 1, 3)", async () => {
+    const late = await makeUser("Late");
+    const bea = await makeUser("Bea");
+    const ann = await makeUser("Ann");
+    await award(late, COMPUTE, "2026-10-26");
+    await award(late, IAM, "2026-10-28");
+    await award(bea, LANGUAGE, "2026-10-26");
+    await award(bea, SPEECH, "2026-10-27");
+    await award(ann, COMPUTE, "2026-10-27");
+    await award(ann, IAM, "2026-10-26");
+    await rebuildLeaderboard({});
+
+    assert.deepEqual(summary((await list()).body.rows), [
+        [1, "Ann", 2, 8],
+        [1, "Bea", 2, 8],
+        [3, "Late", 2, 8]
+    ]);
+});
+
+test("0-credit badges still count: all-0-credit ranks below the same count with credits, above fewer badges", async () => {
+    const zero = await makeUser("Zero");
+    const paid = await makeUser("Paid");
+    const one = await makeUser("One");
+    await award(zero, STUDIO, "2026-10-26");
+    await award(zero, GEMINI, "2026-10-26");
+    await award(paid, COMPUTE, "2026-10-28");
+    await award(paid, IAM, "2026-10-29");
+    await award(one, AGENT, "2026-10-26");
+    await rebuildLeaderboard({});
+
+    assert.deepEqual(summary((await list()).body.rows), [
+        [1, "Paid", 2, 8],
+        [2, "Zero", 2, 0],
+        [3, "One", 1, 16]
+    ]);
+});
+
+test("a snapshot built before credits were ranked serves validCredits as null, not 0", async () => {
+    const user = await makeUser("Legacy");
+    await Leaderboard.collection.insertOne({
+        _id: "current",
+        lastSuccessfulUpdate: new Date("2026-10-28T00:00:00Z"),
+        generatedAt: new Date("2026-10-28T00:00:00Z"),
+        competitionStartDate: new Date("2026-10-26T00:00:00Z"),
+        rows: [{
+            rank: 1, userId: user._id, username: "Legacy", skillsUrl: user.skillsUrl,
+            validBadgeCount: 1, latestValidBadgeAt: new Date("2026-10-27T00:00:00Z"), badges: []
+        }]
+    });
+
+    const res = await list();
+    assert.equal(res.status, 200);
+    assert.equal(res.body.rows[0].validCredits, null);
+    const one = await request(app).get(`/api/leaderboard/${user._id}`);
+    assert.equal(one.status, 200);
+    assert.equal(one.body.validCredits, null);
 });
 
 test("non-whitelisted, pre-start, non-zero seconds/ms and post-end rows are excluded", async () => {
@@ -138,11 +212,13 @@ test("non-whitelisted, pre-start, non-zero seconds/ms and post-end rows are excl
     await rebuildLeaderboard({});
     let row = (await getSnapshot()).rows[0];
     assert.equal(row.validBadgeCount, 2);
+    assert.equal(row.validCredits, 4, "only STUDIO (0) and IAM (4) add credits");
     assert.deepEqual(row.badges.map((b) => b.name), [STUDIO, IAM]);
 
     await rebuildLeaderboard({ endDate: "2026-11-04" });
     row = (await getSnapshot()).rows[0];
     assert.equal(row.validBadgeCount, 1);
+    assert.equal(row.validCredits, 0);
     assert.equal(row.latestValidBadgeAt.toISOString(), "2026-10-26T00:00:00.000Z");
 });
 
@@ -160,7 +236,7 @@ test("overlapping rebuilds run in order: a later 'keep' rebuild never reverts a 
     assert.equal(snapshot.rows[0].validBadgeCount, 1, "the later rebuild saw the later data");
 });
 
-test("two Badge docs with the same name count once (earliest date wins)", async () => {
+test("two Badge docs with the same name count once and add credits once (earliest date wins)", async () => {
     const user = await makeUser("Dup");
     await award(user, COMPUTE, "2026-10-28");
     await award(user, COMPUTE, "2026-10-27", { newBadgeDoc: true });
@@ -169,6 +245,7 @@ test("two Badge docs with the same name count once (earliest date wins)", async 
     await rebuildLeaderboard({});
     const row = (await getSnapshot()).rows[0];
     assert.equal(row.validBadgeCount, 1);
+    assert.equal(row.validCredits, 4);
     assert.equal(row.badges.length, 1);
     assert.equal(row.latestValidBadgeAt.toISOString(), "2026-10-27T00:00:00.000Z");
 });
@@ -237,11 +314,11 @@ test("pagination keeps global ranks", async () => {
     await rebuildLeaderboard({});
 
     const page2 = await list("?page=2&limit=2");
-    assert.deepEqual(summary(page2.body.rows), [[3, "C", 3], [4, "D", 2]]);
+    assert.deepEqual(summary(page2.body.rows), [[3, "C", 3, 29], [4, "D", 2, 17]]);
     assert.deepEqual(page2.body.pagination, { page: 2, limit: 2, total: 5, totalPages: 3 });
 
     const page3 = await list("?page=3&limit=2");
-    assert.deepEqual(summary(page3.body.rows), [[5, "E", 1]]);
+    assert.deepEqual(summary(page3.body.rows), [[5, "E", 1, 4]]);
 
     const beyond = await list("?page=9&limit=2");
     assert.equal(beyond.status, 200);
@@ -269,7 +346,7 @@ test("search is literal and case-insensitive; regex characters are safe; ranks s
     assert.deepEqual(await names("\\"), []);
 
     const plain = await search("plain");
-    assert.deepEqual(summary(plain.rows), [[2, "Plain", 0]]);
+    assert.deepEqual(summary(plain.rows), [[2, "Plain", 0, 0]]);
     assert.equal(plain.pagination.total, 1);
 
     const tooLong = await list(`?search=${"a".repeat(101)}`);
@@ -311,6 +388,7 @@ test("GET /:userId returns the row with badges; 400 on a malformed id, 404 when 
     assert.equal(ok.body.userId, String(user._id));
     assert.equal(ok.body.rank, 1);
     assert.equal(ok.body.validBadgeCount, 1);
+    assert.equal(ok.body.validCredits, 4);
     assert.equal(ok.body.badges.length, 1);
     assert.equal(ok.body.badges[0].name, COMPUTE);
     assert.equal(ok.body.badges[0].earnedAt, "2026-10-27T00:00:00.000Z");

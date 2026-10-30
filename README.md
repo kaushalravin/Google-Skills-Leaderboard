@@ -142,26 +142,29 @@ Every variable is validated at startup, and an invalid value stops the process. 
 ## Scoring
 
 A badge counts when all of these hold:
-- It is one of the 10 skill badges in `server/data/Accepted Badges.csv`:
-  - The Basics of Google Cloud Compute
-  - Configure Service Accounts and IAM Roles for Google Cloud
-  - Implement Speech and Language Solutions with Pre-trained APIs
-  - Develop AI-Powered Prototypes in Google AI Studio
-  - Analyze Images with the Cloud Vision API
-  - Build a Website on Google Cloud
-  - Create Your First Gemini Enterprise Application
-  - Store, Process, and Manage Data on Google Cloud - Console
-  - Using the Google Cloud Speech API
-  - Explore Generative AI in Agent Platform
+- It is one of the 10 skill badges in `server/data/Accepted Badges.csv` (credits in brackets):
+  - The Basics of Google Cloud Compute (4)
+  - Configure Service Accounts and IAM Roles for Google Cloud (4)
+  - Implement Speech and Language Solutions with Pre-trained APIs (4)
+  - Develop AI-Powered Prototypes in Google AI Studio (0)
+  - Analyze Images with the Cloud Vision API (12)
+  - Build a Website on Google Cloud (13)
+  - Create Your First Gemini Enterprise Application (0)
+  - Store, Process, and Manage Data on Google Cloud - Console (3)
+  - Using the Google Cloud Speech API (4)
+  - Explore Generative AI in Agent Platform (16)
 - The date shown on the profile is on or after 2026-10-26.
 - Each badge name counts once per participant.
 
 Badges with no readable date are skipped.
 
+A participant's valid credits are the sum of the CSV's `# of credits required` over their counted badges. Each counted badge adds its credits once, and a 0-credit badge still counts as a badge.
+
 **Ranking:**
 - More valid badges ranks higher.
-- On equal counts, whoever earned their latest counted badge earlier ranks higher.
-- Only participants with the same count and the same date share a rank (1, 1, 3). Within a shared rank, participants are listed by username.
+- On equal counts, more valid credits ranks higher.
+- On equal counts and credits, whoever earned their latest counted badge earlier ranks higher.
+- Only participants with the same count, credits and date share a rank (1, 1, 3). Within a shared rank, participants are listed by username.
 - Participants with no valid badges share the last rank.
 
 ## API
@@ -188,6 +191,7 @@ Errors always have the shape `{ "error": { "code", "message", "details"?, "reque
       "username": "Asha Rao",
       "skillsUrl": "https://www.skills.google/public_profiles/a1b2c3",
       "validBadgeCount": 2,
+      "validCredits": 17,
       "latestValidBadgeAt": "2026-10-28T00:00:00.000Z",
       "badges": [
         { "name": "Build a Website on Google Cloud", "imageUrl": "https://cdn.qwiklabs.com/638.png", "earnedAt": "2026-10-27T00:00:00.000Z" },
@@ -198,7 +202,7 @@ Errors always have the shape `{ "error": { "code", "message", "details"?, "reque
 }
 ```
 
-Before any snapshot exists, `rows` is empty and `lastSuccessfulUpdate` is `null`.
+Before any snapshot exists, `rows` is empty and `lastSuccessfulUpdate` is `null`. A snapshot built before credits were ranked returns `"validCredits": null` until the next crawl or ingestion rebuilds it.
 
 `GET /api/leaderboard/:userId` returns one row in the same shape. A malformed id returns 400 `VALIDATION_ERROR`, and an unknown id 404 `NOT_FOUND`.
 

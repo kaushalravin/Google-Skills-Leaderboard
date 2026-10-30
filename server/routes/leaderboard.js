@@ -19,6 +19,9 @@ const userIdParam = z.string().regex(/^[0-9a-fA-F]{24}$/, "must be a 24-characte
 
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+// A snapshot built before credits were ranked has no validCredits until the next rebuild: report it as unknown, not 0.
+const withCredits = (row) => ({ ...row, validCredits: row.validCredits ?? null });
+
 const leaderboardRouter = express.Router();
 
 // Pages are cut inside MongoDB ($filter + $slice), so a request never loads every row.
@@ -52,7 +55,7 @@ leaderboardRouter.get("/", async (req, res) => {
         lastSuccessfulUpdate: doc?.lastSuccessfulUpdate ?? null,
         competitionStartDate: doc?.competitionStartDate ?? null,
         pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-        rows: doc?.rows ?? []
+        rows: (doc?.rows ?? []).map(withCredits)
     });
 });
 
@@ -63,7 +66,7 @@ leaderboardRouter.get("/:userId", async (req, res) => {
         { $project: { row: { $first: { $filter: { input: "$rows", as: "r", cond: { $eq: ["$$r.userId", userId] } } } } } }
     ]);
     if (!doc?.row) throw new AppError(404, "NOT_FOUND", "Participant not found on the leaderboard");
-    res.set("Cache-Control", CACHE_CONTROL).json(doc.row);
+    res.set("Cache-Control", CACHE_CONTROL).json(withCredits(doc.row));
 });
 
 module.exports = { leaderboardRouter };

@@ -16,6 +16,7 @@ const rowSchema = new mongoose.Schema(
         username: String,
         skillsUrl: String,
         validBadgeCount: Number,
+        validCredits: Number,
         latestValidBadgeAt: Date,
         badges: [badgeSchema]
     },

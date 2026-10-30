@@ -8,6 +8,7 @@ const {
     parseRetryAfter,
     backoffDelay,
     isWhitelisted,
+    badgeCredits,
     isValidEarnedAt,
     competitionWindow
 } = require("../../services/crawl");
@@ -49,6 +50,13 @@ test("whitelist uses the scraper's normalization (trim, collapse spaces, lowerca
     assert.equal(isWhitelisted("Store, Process, and Manage Data on Google Cloud - Console"), true);
     assert.equal(isWhitelisted("Using the Google Cloud Speech API Level 2"), false);
     assert.equal(isWhitelisted("Some Other Course"), false);
+});
+
+test("credits come from the CSV with the same normalization; 0-credit and unknown badges add 0", () => {
+    assert.equal(badgeCredits("  build a   website on GOOGLE cloud "), 13);
+    assert.equal(badgeCredits("Explore Generative AI in Agent Platform"), 16);
+    assert.equal(badgeCredits("Develop AI-Powered Prototypes in Google AI Studio"), 0);
+    assert.equal(badgeCredits("Some Other Course"), 0);
 });
 
 test("valid earnedAt: in window, whole minute, end date inclusive", () => {
