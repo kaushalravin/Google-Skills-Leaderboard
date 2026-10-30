@@ -1,18 +1,22 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiBaseUrl = (env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '')
+  if (command === 'build' && !env.VITE_SITE_URL) {
+    console.warn('VITE_SITE_URL is not set: link previews will have no image. See .env.example.')
+  }
+  // index.html uses %VITE_SITE_URL% for Open Graph URLs; unset, Vite would leave the placeholder in the page
+  process.env.VITE_SITE_URL = env.VITE_SITE_URL ?? ''
 
   return {
     plugins: [react()],
     server: {
-      port: 3000,
+      port: 5173,
+      strictPort: true,
       proxy: {
         '/api': {
-          target: apiBaseUrl,
+          target: env.VITE_PROXY_TARGET || 'http://localhost:3000',
           changeOrigin: true,
         },
       },
