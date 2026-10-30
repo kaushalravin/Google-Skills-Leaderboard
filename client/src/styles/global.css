@@ -1,26 +1,19 @@
-/* =============================================
-   global.css — Base / Reset styles
-   Body: Poppins font, #f4f4f4 background
-   ============================================= */
-
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html {
-  font-size: 16px;          /* base; all rem values scale from here */
-}
-
 body {
-  font-family: 'Poppins', sans-serif;
-  background-color: #f4f4f4;
-  color: #202124;
+  font-family: var(--font);
+  background-color: var(--bg);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   line-height: 1.6;
+  /* Room for the pinned-participant bar; MeBar sets the offset while it is shown */
+  padding-bottom: var(--mebar-offset);
 }
 
 a {
@@ -45,26 +38,123 @@ img {
 }
 
 :focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
-.sr-only {
+/* Bootstrap replaces the outline on buttons and selects with a glow; keep the shared ring instead */
+.btn:focus-visible,
+.form-select:focus-visible,
+.form-select:focus {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+main:focus {
+  outline: none;
+}
+
+/* Swag pills are shared by the table and the badge popup */
+.swag-tag-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--swag-gold-bg);
+  color: var(--swag-gold-text);
+  border: 1px solid var(--swag-gold-border);
+}
+
+.swag-tag-silver {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--hairline);
+}
+
+.container {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+  width: 100%;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-shell__content {
+  flex: 1;
+}
+
+.skip-link {
   position: absolute;
+  left: -9999px;
+  top: auto;
   width: 1px;
   height: 1px;
-  padding: 0;
-  margin: -1px;
   overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border-width: 0;
 }
 
-/* Utility container */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  width: 100%;
+.skip-link:focus {
+  position: fixed;
+  left: var(--space-4);
+  top: var(--space-4);
+  z-index: 9999;
+  width: auto;
+  height: auto;
+  padding: var(--space-2) var(--space-4);
+  background: var(--brand-blue);
+  color: var(--on-accent);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.not-found {
+  padding: calc(2 * var(--space-6)) var(--space-5);
+  text-align: center;
+}
+
+.not-found__title {
+  font-size: 2rem;
+  margin-bottom: var(--space-3);
+}
+
+.not-found__desc {
+  color: var(--text-muted);
+}
+
+.not-found__link {
+  display: inline-block;
+  margin-top: var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  background: var(--brand-blue);
+  color: var(--on-accent);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.not-found__link:hover {
+  color: var(--on-accent);
 }

@@ -1,48 +1,78 @@
-/* =============================================
-   Footer.css — Footer Styles
-   ============================================= */
-
 .footer {
-  background: var(--white);
-  border-top: 1px solid var(--border);
-  padding: 20px 24px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--hairline);
+  padding: var(--space-5);
+  /* Clear the home indicator, unless the pinned bar's body padding already does */
+  padding-bottom: max(var(--space-5), calc(var(--space-5) + env(safe-area-inset-bottom) - var(--mebar-offset)));
   margin-top: auto;
 }
 
 .footer__inner {
-  max-width: 1200px;
+  max-width: var(--content-max);
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-3) var(--space-5);
 }
 
-.footer__copy {
-  font-size: 0.82rem;
-  color: var(--mid);
+.footer__copy,
+.footer__status {
+  font-size: 0.875rem;
+  color: var(--text-muted);
   margin: 0;
+}
+
+.footer__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.footer__status-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.footer__status--ok .footer__status-dot {
+  background: var(--rank-up);
+}
+
+.footer__status--degraded .footer__status-dot {
+  background: var(--swag-gold-text);
 }
 
 .footer__links {
   display: flex;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .footer__links a {
-  font-size: 0.82rem;
-  color: var(--blue);
+  font-size: 0.875rem;
+  color: var(--link-text);
   font-weight: 500;
   text-decoration: none;
-  transition: text-decoration var(--transition);
 }
 
 .footer__links a:hover {
   text-decoration: underline;
 }
 
-@media (max-width: 540px) {
+@media (hover: none) and (pointer: coarse) {
+  .footer__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+    padding: 0 var(--space-3);
+  }
+}
+
+@media (max-width: 575.98px) {
   .footer__inner {
     flex-direction: column;
     text-align: center;
