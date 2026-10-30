@@ -12,7 +12,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useLeaderboard } from '../hooks/useLeaderboard.js'
 import LeaderboardTable from '../components/LeaderboardTable.jsx'
-import GDG_MIT_IMG from '../assets/gdg_on_campus_logo.jpg.jpeg'
+import GDG_MIT_IMG from '../assets/gdg-on-campus-mit.jpeg'
 import '../styles/LeaderboardPage.css'
 
 function formatUpdateTime(iso) {

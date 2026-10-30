@@ -49,7 +49,7 @@ export default function CommunityPage() {
             <h2 className="community-card__title">Earn Your Badges</h2>
             <p className="community-card__desc">
               Complete eligible Google Cloud skill badge labs on
-              Google Cloud Skills Boost. Only the specific badges defined by the
+              Google Skills. Only the specific badges defined by the
               campaign count towards your eligibility — check the Syllabus
               (available in Resources) for the complete badge list.
             </p>

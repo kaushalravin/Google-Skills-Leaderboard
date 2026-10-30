@@ -2,7 +2,7 @@
  * LeaderboardTable.jsx
  *
  * Implements the wide, streamlined table:
- *  - Columns: Rank | UserName | SkillsBoost Profile | Badges Completed | Swags Eligibility
+ *  - Columns: Rank | UserName | Google Skills profile | Badges Completed | Swags Eligibility
  *  - Email removed per request
  *  - Arcade Game Completion removed per request
  *  - Interactive 'View Badges' button in table which triggers the Badges popup modal
@@ -12,7 +12,7 @@
 
 import { useState, useCallback } from 'react'
 import BadgeModal from './BadgeModal.jsx'
-import IMAGE_GDG from '../assets/imageGDG.jpg'
+import IMAGE_GDG from '../assets/google-cloud.jpg'
 import '../styles/LeaderboardTable.css'
 
 const SILVER_THRESHOLD = 5
@@ -109,7 +109,7 @@ export default function LeaderboardTable({ data, loading, error, retry, onPageCh
             <tr>
               <th className="text-center" style={{ width: '90px' }}>Rank</th>
               <th>UserName</th>
-              <th className="text-center" style={{ width: '180px' }}>SkillsBoost Profile</th>
+              <th className="text-center" style={{ width: '180px' }}>Google Skills profile</th>
               <th className="text-center" style={{ width: '220px' }}>Badges Completed</th>
               <th className="text-center" style={{ width: '180px' }}>Swags Eligibility</th>
             </tr>
@@ -166,7 +166,7 @@ export default function LeaderboardTable({ data, loading, error, retry, onPageCh
             <tr>
               <th className="text-center" style={{ width: '90px' }}>Rank</th>
               <th>UserName</th>
-              <th className="text-center" style={{ width: '180px' }}>SkillsBoost Profile</th>
+              <th className="text-center" style={{ width: '180px' }}>Google Skills profile</th>
               <th className="text-center" style={{ width: '220px' }}>Badges Completed</th>
               <th className="text-center" style={{ width: '180px' }}>Swags Eligibility</th>
             </tr>
@@ -184,19 +184,19 @@ export default function LeaderboardTable({ data, loading, error, retry, onPageCh
                   {/* UserName */}
                   <td className="fw-medium text-dark text-nowrap">{row.username}</td>
 
-                  {/* SkillsBoost Profile */}
+                  {/* Google Skills profile */}
                   <td className="text-center">
                     {row.skillsUrl ? (
                       <a
                         target="_blank"
                         rel="noopener noreferrer"
                         href={row.skillsUrl}
-                        title={`View ${row.username}'s Google Cloud Skills Boost Profile`}
+                        title={`Open ${row.username}'s Google Skills profile`}
                         className="profile-cloud-link"
                       >
                         <img
                           src={IMAGE_GDG}
-                          alt="SkillsBoost URL"
+                          alt="Google Skills profile"
                           width="26"
                           height="26"
                           className="skills-cloud-icon"
@@ -205,7 +205,7 @@ export default function LeaderboardTable({ data, loading, error, retry, onPageCh
                     ) : (
                       <img
                         src={IMAGE_GDG}
-                        alt="SkillsBoost URL"
+                        alt="Google Skills profile"
                         width="26"
                         height="26"
                         style={{ opacity: 0.5 }}

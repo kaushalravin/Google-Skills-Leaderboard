@@ -8,8 +8,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
-import GDG_LOGO from '../assets/gdg_on_campus_logo.jpg.jpeg'
-import AU_LOGO from '../assets/Anna_University.png'
+import GDG_LOGO from '../assets/gdg-on-campus-mit.jpeg'
+import AU_LOGO from '../assets/anna-university.png'
 import '../styles/Navbar.css'
 
 const RESOURCES = [

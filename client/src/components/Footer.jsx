@@ -15,12 +15,12 @@ export default function Footer() {
         </p>
         <nav className="footer__links" aria-label="Footer links">
           <a
-            href="https://cloud.google.com/learn/training/community"
+            href="https://www.skills.google"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Google Cloud Skills Boost (opens in new tab)"
+            aria-label="Google Skills (opens in new tab)"
           >
-            Google Cloud Skills Boost
+            Google Skills
           </a>
         </nav>
       </div>
