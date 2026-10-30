@@ -27,7 +27,7 @@ export default function CommunityPage() {
             <div className="community-card__accent" style={{ background: '#4285F4' }} />
             <h2 className="community-card__title">About the Campaign</h2>
             <p className="community-card__desc">
-              The <strong>Google Cloud Learn with Communities</strong> (GenAI Study Jam)
+              The <strong>Google Cloud Learn with Communities</strong> (Google Cloud Study Jam)
               program lets students earn Google Cloud skill badges through hands-on labs.
               MIT students who earn 5 eligible badges qualify for Silver swag;
               10 badges qualifies for Gold.

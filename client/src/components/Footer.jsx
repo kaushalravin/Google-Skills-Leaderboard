@@ -11,7 +11,7 @@ export default function Footer() {
     <footer className="footer" aria-label="Site footer">
       <div className="footer__inner">
         <p className="footer__copy">
-          © {CURRENT_YEAR} GDG MIT — Google Cloud Learn with Communities · GenAI Study Jam
+          © {CURRENT_YEAR} GDG MIT — Google Cloud Learn with Communities · Google Cloud Study Jam
         </p>
         <nav className="footer__links" aria-label="Footer links">
           <a

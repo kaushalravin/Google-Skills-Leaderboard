@@ -1,7 +1,7 @@
 /**
  * Navbar.jsx
  *
- * Replicates the exact header and navbar from client/ai-context/GenAI Study Jam - GDG MIT.html:
+ * Replicates the exact header and navbar from the GDG MIT study jam page:
  *  - Header: GDG Logo (left), Title (center), Anna University Logo (right)
  *  - Navbar: Home, Leaderboard, Community, Resources (Dropdown), Contact
  */

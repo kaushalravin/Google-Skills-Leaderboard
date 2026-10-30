@@ -2,8 +2,8 @@
  * LeaderboardPage.jsx
  *
  * Implements:
- *  - About GenAI Study Jam hero section (with GDG On Campus MIT logo)
- *  - Animated GenAI Study Jam Leaderboard heading
+ *  - About Google Cloud Study Jam hero section (with GDG On Campus MIT logo)
+ *  - Animated Google Cloud Study Jam Leaderboard heading
  *  - Search input with 'X' button
  *  - Profiles per page dropdown (5, 15, 25, 50)
  *  - Expanded wide LeaderboardTable
@@ -67,7 +67,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="leaderboard-page-wrapper">
-      {/* About GenAI Study Jam Section */}
+      {/* About Google Cloud Study Jam Section */}
       <div className="container my-5">
         <div className="row align-items-center">
           <div className="col-lg-6 col-md-6 col-sm-12 mb-4 mb-md-0 text-center">
@@ -96,7 +96,7 @@ export default function LeaderboardPage() {
       {/* Main Leaderboard Section (Wider layout) */}
       <div id="leaderboard" className="leaderboard-wide-container my-4">
         {/* Animated heading */}
-        <h1 className="genai-heading">GenAI Study Jam Leaderboard</h1>
+        <h1 className="genai-heading">Google Cloud Study Jam Leaderboard</h1>
 
         {/* Search Input Container */}
         <div className="col-12 d-flex justify-content-center mb-3">
