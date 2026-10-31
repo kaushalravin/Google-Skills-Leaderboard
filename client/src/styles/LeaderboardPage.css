@@ -347,25 +347,7 @@
   outline-offset: calc(-1 * var(--focus-ring-offset));
 }
 
-.page-size {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
 
-.page-size__label {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-}
-
-.page-size__select {
-  width: auto;
-  color: var(--ink);
-  background-color: var(--card-bg);
-  border-color: var(--control-border);
-  border-radius: var(--radius-sm);
-}
 
 .search-status {
   color: var(--text-muted);
@@ -452,12 +434,7 @@
   }
 }
 
-@media (pointer: coarse), (max-width: 575.98px) {
-  .page-size__select {
-    min-height: var(--touch-min);
-    font-size: 1rem;
-  }
-}
+
 
 @media (max-width: 575.98px) {
   .about-section {
@@ -529,9 +506,7 @@
   .search-field {
     max-width: none;
   }
-  .page-size {
-    justify-content: flex-end;
-  }
+
   .search-status {
     margin-left: 0;
   }

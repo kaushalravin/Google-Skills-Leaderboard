@@ -22,10 +22,10 @@ beforeEach(() => {
 })
 
 test('reads back what it stores', () => {
-  assert.equal(setItem(STORAGE_KEYS.theme, 'dark'), true)
-  assert.equal(getItem(STORAGE_KEYS.theme), 'dark')
-  assert.equal(removeItem(STORAGE_KEYS.theme), true)
-  assert.equal(getItem(STORAGE_KEYS.theme), null)
+  assert.equal(setItem(STORAGE_KEYS.pinned, 'user-123'), true)
+  assert.equal(getItem(STORAGE_KEYS.pinned), 'user-123')
+  assert.equal(removeItem(STORAGE_KEYS.pinned), true)
+  assert.equal(getItem(STORAGE_KEYS.pinned), null)
 })
 
 test('never throws when storage is blocked', () => {

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import GDG_LOGO from '../assets/gdg-on-campus-mit.jpeg'
 import AU_LOGO from '../assets/anna-university.png'
-import { STORAGE_KEYS, setItem } from '../lib/storage.js'
 import '../styles/Navbar.css'
 
 const RESOURCES = [
@@ -11,41 +10,9 @@ const RESOURCES = [
   { label: 'Syllabus',         href: 'https://docs.google.com/spreadsheets/d/1XoxkJ4OvDwN44iDJt6EUesfuJIYiBj8Y5vl_sVL_dKk/pubhtml?gid=0&single=true' },
 ]
 
-function currentTheme() {
-  return document.documentElement.dataset.bsTheme === 'dark' ? 'dark' : 'light'
-}
-
-// The browser bar colour follows the chosen theme, not just the device setting the meta media queries see.
-function syncThemeColor() {
-  const headerBg = getComputedStyle(document.documentElement).getPropertyValue('--header-bg').trim()
-  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
-    meta.setAttribute('content', headerBg)
-  })
-}
-
-function SunIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="4.5" fill="currentColor" />
-      <g stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" />
-      </g>
-    </svg>
-  )
-}
-
-function MoonIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-      <path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1Z" />
-    </svg>
-  )
-}
-
 export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [navCollapsed, setNavCollapsed] = useState(true)
-  const [theme, setTheme] = useState(currentTheme)
   const dropdownRef = useRef(null)
   const { pathname, hash } = useLocation()
   const onLeaderboard = pathname === '/' && hash === '#leaderboard'
@@ -67,26 +34,6 @@ export default function Navbar() {
       document.removeEventListener('keydown', handleEscape)
     }
   }, [])
-
-  // The theme can also change from index.html's listener when the device setting flips.
-  useEffect(() => {
-    function sync() {
-      setTheme(currentTheme())
-      syncThemeColor()
-    }
-    sync()
-    const observer = new MutationObserver(sync)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] })
-    return () => observer.disconnect()
-  }, [])
-
-  function toggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setItem(STORAGE_KEYS.theme, next)
-    document.documentElement.dataset.bsTheme = next
-  }
-
-  const nextThemeLabel = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
 
   return (
     <>
@@ -118,16 +65,6 @@ export default function Navbar() {
             onClick={() => setNavCollapsed((prev) => !prev)}
           >
             <span className="navbar-toggler-icon" />
-          </button>
-
-          <button
-            type="button"
-            className="theme-toggle order-lg-last"
-            aria-label={nextThemeLabel}
-            title={nextThemeLabel}
-            onClick={toggleTheme}
-          >
-            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           </button>
 
           <div id="navbarNav" className={`collapse navbar-collapse ${navCollapsed ? '' : 'show'}`}>

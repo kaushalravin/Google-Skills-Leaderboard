@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { useLeaderboard } from '../hooks/useLeaderboard.js'
 import { fetchParticipant } from '../api.js'
 import { formatDateTimeIST, formatTimeIST, nextUpdateEstimate, relativeTime, plural } from '../lib/leaderboard.js'
-import { scrollBehavior } from '../lib/motion.js'
 import LeaderboardTable from '../components/LeaderboardTable.jsx'
 import BadgeModal from '../components/BadgeModal.jsx'
 import Podium from '../components/Podium.jsx'
@@ -13,7 +12,6 @@ import MeBar from '../components/MeBar.jsx'
 import GDG_LOGO from '../assets/gdg-on-campus-mit.jpeg'
 import '../styles/LeaderboardPage.css'
 
-const PAGE_SIZE_OPTIONS = [5, 15, 25, 50]
 const DEFAULT_LIMIT = 25
 const SEARCH_MAX = 100
 const SEARCH_DEBOUNCE_MS = 350
@@ -22,22 +20,10 @@ function isTypingTarget(el) {
   return el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
 }
 
-function readPage(value) {
-  const n = Number(value)
-  return Number.isInteger(n) && n >= 1 ? n : 1
-}
-
-function readLimit(value) {
-  const n = Number(value)
-  return PAGE_SIZE_OPTIONS.includes(n) ? n : DEFAULT_LIMIT
-}
-
 // Defaults stay out of the URL so a plain link to the board is just "/"
-function toSearchParams({ q, page, limit }) {
+function toSearchParams({ q }) {
   const params = new URLSearchParams()
   if (q) params.set('q', q)
-  if (page > 1) params.set('page', String(page))
-  if (limit !== DEFAULT_LIMIT) params.set('limit', String(limit))
   return params
 }
 
@@ -118,8 +104,6 @@ export default function LeaderboardPage() {
   const navigate = useNavigate()
 
   const search = (searchParams.get('q') ?? '').slice(0, SEARCH_MAX)
-  const page = readPage(searchParams.get('page'))
-  const limit = readLimit(searchParams.get('limit'))
 
   const [searchInput, setSearchInput] = useState(search)
   const [urlSearch, setUrlSearch] = useState(search)
@@ -138,7 +122,20 @@ export default function LeaderboardPage() {
     setSearchInput(search)
   }
 
-  const { data, dataKey, loading, error, retry, refreshCount } = useLeaderboard({ page, limit, search })
+  const {
+    data,
+    dataKey,
+    loading,
+    loadingMore,
+    loadMoreError,
+    hasMore,
+    loadMore,
+    total,
+    loadedCount,
+    error,
+    retry,
+    refreshCount,
+  } = useLeaderboard({ limit: DEFAULT_LIMIT, search })
   const refreshKey = retryCount + refreshCount
 
   let participant = null
@@ -192,21 +189,15 @@ export default function LeaderboardPage() {
   }, [])
 
   const updateQuery = useCallback((changes, options) => {
-    setSearchParams(toSearchParams({ q: search, page, limit, ...changes }), options)
-  }, [setSearchParams, search, page, limit])
-
-  // A shared link can point past the last page once the board shrinks
-  const totalPages = data?.pagination.totalPages
-  useEffect(() => {
-    if (!loading && !error && totalPages >= 1 && page > totalPages) updateQuery({ page: totalPages }, { replace: true })
-  }, [loading, error, totalPages, page, updateQuery])
+    setSearchParams(toSearchParams({ q: search, ...changes }), options)
+  }, [setSearchParams, search])
 
   function handleSearchChange(val) {
     setSearchInput(val)
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       setUrlSearch(val)
-      updateQuery({ q: val, page: 1 }, { replace: true })
+      updateQuery({ q: val }, { replace: true })
     }, SEARCH_DEBOUNCE_MS)
   }
 
@@ -214,7 +205,7 @@ export default function LeaderboardPage() {
     clearTimeout(debounceRef.current)
     setSearchInput('')
     setUrlSearch('')
-    updateQuery({ q: '', page: 1 }, { replace: true })
+    updateQuery({ q: '' }, { replace: true })
     searchRef.current?.focus()
   }
 
@@ -223,15 +214,6 @@ export default function LeaderboardPage() {
       e.preventDefault()
       handleClearSearch()
     }
-  }
-
-  function handleLimitChange(e) {
-    updateQuery({ limit: Number(e.target.value), page: 1 })
-  }
-
-  function handlePageChange(p) {
-    updateQuery({ page: p })
-    document.getElementById('leaderboard')?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' })
   }
 
   function handleRetry() {
@@ -266,9 +248,11 @@ export default function LeaderboardPage() {
   const searchTotal = searching && data && !loading && !error ? data.pagination.total : null
   let searchStatus = ''
   if (searchTotal !== null) {
-    searchStatus = summary
-      ? `Showing ${searchTotal} of ${plural(summary.total, 'participant')}`
-      : `Showing ${plural(searchTotal, 'participant')}`
+    if (loadedCount < searchTotal) {
+      searchStatus = `Showing ${loadedCount} of ${searchTotal} matching participants`
+    } else {
+      searchStatus = `Showing all ${plural(searchTotal, 'matching participant')}`
+    }
   }
   // The cached copy carries its own crawl time, which matches the freshness line above it
   const cachedAt = !loading && data?.servedFromCacheAt
@@ -374,22 +358,6 @@ export default function LeaderboardPage() {
               </button>
             )}
           </div>
-
-          <div className="page-size">
-            <label htmlFor="page-size" className="page-size__label">Show</label>
-            <select
-              id="page-size"
-              className="form-select form-select-sm page-size__select"
-              value={limit}
-              onChange={handleLimitChange}
-            >
-              {PAGE_SIZE_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
         <p className="search-status" aria-live="polite">{searchStatus}</p>
@@ -402,9 +370,14 @@ export default function LeaderboardPage() {
           data={data}
           dataKey={dataKey}
           loading={loading}
+          loadingMore={loadingMore}
+          loadMoreError={loadMoreError}
+          hasMore={hasMore}
+          onLoadMore={loadMore}
+          total={total}
+          loadedCount={loadedCount}
           error={error}
           onRetry={handleRetry}
-          onPageChange={handlePageChange}
           onViewBadges={open}
           searching={searching}
         />

@@ -39,76 +39,79 @@ function RankCell({ row, showMovement }) {
   )
 }
 
-function Pagination({ pagination, onPageChange }) {
-  const { page, totalPages } = pagination
-  if (totalPages <= 1) return null
-
-  const delta = 1
-  const pages = []
-  for (let i = Math.max(1, page - delta); i <= Math.min(totalPages, page + delta); i++) {
-    pages.push(i)
+function LoadMoreControl({ hasMore, loadingMore, loadMoreError, onLoadMore, total, loadedCount }) {
+  if (loadingMore) {
+    return (
+      <div className="lb-load-more-wrap" role="status" aria-live="polite">
+        <button type="button" className="lb-load-more-btn is-loading" disabled>
+          <span className="lb-load-more-spinner" aria-hidden="true" />
+          <span>Loading more participants...</span>
+        </button>
+      </div>
+    )
   }
 
-  return (
-    <nav className="lb-pagination mt-3" aria-label="Leaderboard pages">
-      <button
-        type="button"
-        className="btn btn-outline-primary lb-pagination__step"
-        disabled={page === 1}
-        onClick={() => onPageChange(page - 1)}
-      >
-        <span className="lb-pagination__arrow" aria-hidden="true">‹ </span>Previous
-      </button>
+  if (loadMoreError) {
+    return (
+      <div className="lb-load-more-wrap">
+        <button
+          type="button"
+          className="lb-load-more-btn is-error"
+          onClick={onLoadMore}
+        >
+          <span className="lb-load-more-icon-wrap" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 4v6h6M23 20v-6h-6" />
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+            </svg>
+          </span>
+          <span>Failed to load. Click to retry</span>
+        </button>
+      </div>
+    )
+  }
 
-      <span className="lb-pagination__compact">
-        <span aria-hidden="true">·</span>
-        <span><span className="visually-hidden">Page </span>{page} of {totalPages}</span>
-        <span aria-hidden="true">·</span>
-      </span>
+  if (hasMore) {
+    const remaining = Math.max(0, total - loadedCount)
+    return (
+      <div className="lb-load-more-wrap">
+        <button
+          type="button"
+          className="lb-load-more-btn"
+          onClick={onLoadMore}
+          aria-label={`Load more participants (${remaining} remaining)`}
+        >
+          <span className="lb-load-more-icon-wrap" aria-hidden="true">
+            <svg className="lb-load-more-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M19 12l-7 7-7-7" />
+            </svg>
+          </span>
+          <span className="lb-load-more-label">Load more</span>
+          <span className="lb-load-more-badge">{remaining} remaining</span>
+        </button>
+        <span className="lb-load-more-progress">
+          Showing {loadedCount} of {total} participants
+        </span>
+      </div>
+    )
+  }
 
-      <span className="lb-pagination__numbers">
-        {pages[0] > 1 && (
-          <>
-            <button type="button" className="btn btn-outline-primary" onClick={() => onPageChange(1)}>
-              1
-            </button>
-            {pages[0] > 2 && <span className="lb-pagination__gap">…</span>}
-          </>
-        )}
+  if (!hasMore && loadedCount > 0 && total > 15) {
+    return (
+      <div className="lb-load-more-wrap">
+        <div className="lb-all-loaded" role="status">
+          <span className="lb-all-loaded__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </span>
+          <span>All {total} participants loaded</span>
+        </div>
+      </div>
+    )
+  }
 
-        {pages.map((p) => (
-          <button
-            key={p}
-            type="button"
-            className={`btn btn-outline-primary ${p === page ? 'active' : ''}`}
-            disabled={p === page}
-            aria-current={p === page ? 'page' : undefined}
-            onClick={() => onPageChange(p)}
-          >
-            {p}
-          </button>
-        ))}
-
-        {pages[pages.length - 1] < totalPages && (
-          <>
-            {pages[pages.length - 1] < totalPages - 1 && <span className="lb-pagination__gap">…</span>}
-            <button type="button" className="btn btn-outline-primary" onClick={() => onPageChange(totalPages)}>
-              {totalPages}
-            </button>
-          </>
-        )}
-      </span>
-
-      <button
-        type="button"
-        className="btn btn-outline-primary lb-pagination__step"
-        disabled={page === totalPages}
-        onClick={() => onPageChange(page + 1)}
-      >
-        Next<span className="lb-pagination__arrow" aria-hidden="true"> ›</span>
-      </button>
-    </nav>
-  )
+  return null
 }
 
 function TableHead() {
@@ -240,7 +243,21 @@ function useReorder(rows, dataKey) {
   }
 }
 
-export default function LeaderboardTable({ data, dataKey, loading, error, onRetry, onPageChange, onViewBadges, searching }) {
+export default function LeaderboardTable({
+  data,
+  dataKey,
+  loading,
+  loadingMore,
+  loadMoreError,
+  hasMore,
+  onLoadMore,
+  total,
+  loadedCount,
+  error,
+  onRetry,
+  onViewBadges,
+  searching,
+}) {
   const rows = loading || error ? null : data?.rows ?? []
   const rowRef = useReorder(rows, dataKey)
 
@@ -256,8 +273,6 @@ export default function LeaderboardTable({ data, dataKey, loading, error, onRetr
       </div>
     )
   }
-
-  const pagination = data?.pagination
 
   if (rows.length === 0) {
     return (
@@ -304,7 +319,14 @@ export default function LeaderboardTable({ data, dataKey, loading, error, onRetr
         </table>
       </div>
 
-      {pagination && <Pagination pagination={pagination} onPageChange={onPageChange} />}
+      <LoadMoreControl
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        loadMoreError={loadMoreError}
+        onLoadMore={onLoadMore}
+        total={total}
+        loadedCount={loadedCount}
+      />
     </>
   )
 }

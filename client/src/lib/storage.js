@@ -1,5 +1,4 @@
 export const STORAGE_KEYS = {
-  theme: 'gdg-lb-theme',
   pinned: 'gdg-lb-pinned',
 }
 

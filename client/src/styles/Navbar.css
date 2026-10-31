@@ -51,23 +51,6 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-.theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: var(--touch-min);
-  height: var(--touch-min);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--ink);
-}
-
-.theme-toggle:hover {
-  background-color: var(--surface);
-}
-
 .site-navbar .nav-link {
   font-size: 1.1rem;
   font-weight: 500;
