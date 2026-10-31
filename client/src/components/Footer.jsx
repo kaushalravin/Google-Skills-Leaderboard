@@ -40,7 +40,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer__inner">
         <p className="footer__copy">
-          © {CURRENT_YEAR} GDG on Campus MIT · Google Cloud Study Jam
+          © {CURRENT_YEAR} GDG on Campus MIT · Google Cloud Learn with Communities
           <br />
           Built by Kaushal N and Sharukesh Alagiri
         </p>

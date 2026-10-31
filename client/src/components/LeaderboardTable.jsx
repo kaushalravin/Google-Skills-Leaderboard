@@ -40,12 +40,7 @@ function RankBadge({ rank }) {
 
 function MovementBadge({ row }) {
   const change = rankChange(row)
-  if (!change || change.direction === 'same') {
-    return <span className="rank-move rank-move--same">–</span>
-  }
-  if (change.direction === 'new') {
-    return <span className="rank-move rank-move--same">–</span>
-  }
+  if (!change || change.direction === 'same' || change.direction === 'new') return null
   const up = change.direction === 'up'
   return (
     <span className={`rank-move rank-move--${change.direction}`}>
