@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import GDG_LOGO from '../assets/gdg-on-campus-mit.jpeg'
 import AU_LOGO from '../assets/anna-university.png'
+import GOOGLE_CLOUD_LOGO from '../assets/google-cloud.jpg'
+import GDG from '../assets/gdg.png'
 import ONBOARDING_GUIDE from '../assets/GDG_Learn_with_Communities_Onboarding_Guide.pdf'
 import '../styles/Navbar.css'
 
@@ -39,19 +41,47 @@ export default function Navbar() {
     <>
       <header className="d-flex align-items-center justify-content-between site-header">
         <Link to="/" aria-label="Home">
-          <img src={GDG_LOGO} alt="GDG on Campus MIT logo" className="header-logo" width="105" height="105" />
+          <img
+            src={GDG_LOGO}
+            alt="GDG on Campus MIT logo"
+            className="header-logo d-none d-md-block"
+            width="105"
+            height="105"
+          />
+          <img
+            src={GDG}
+            alt="Google Developer Groups logo"
+            className="header-logo d-md-none"
+            width="65"
+            height="65"
+          />
         </Link>
 
+        <p className="text-center m-0 d-md-none header-title-mobile">
+          <span className="header-title__blue">Google</span>{' '}
+          <span className="header-title__red">Developer</span>{' '}
+          <span className="header-title__yellow">Groups</span>{' '}
+          <span className="header-title__green">on Campus</span> <br />
+          <span className="header-title__blue">Madras Institute of Technology</span>
+        </p>
+
         <p className="text-center m-0 d-none d-md-block header-title">
-          Google Developer Groups on Campus <br />
-          Madras Institute of Technology
+          <span className="header-title__blue">Google</span>{' '}
+          <span className="header-title__red">Developer</span>{' '}
+          <span className="header-title__yellow">Groups</span>{' '}
+          <span className="header-title__green">on Campus</span> <br />
+          <span className="header-title__blue">Madras Institute of Technology</span>
         </p>
 
         <img src={AU_LOGO} alt="Anna University logo" className="header-logo d-none d-md-block" width="105" height="104" />
 
-        <p className="text-center m-0 d-md-none header-title-mobile">
-          GDG MIT
-        </p>
+        <img
+          src={GOOGLE_CLOUD_LOGO}
+          alt="Google Cloud logo"
+          className="header-cloud-logo d-md-none"
+          width="65"
+          height="65"
+        />
       </header>
 
       <nav className="navbar navbar-expand-lg site-navbar">
