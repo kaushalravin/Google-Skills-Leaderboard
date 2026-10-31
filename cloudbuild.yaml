@@ -1,8 +1,5 @@
-
 steps:
-  # Step 1: Build Docker image using only server/
   - name: gcr.io/cloud-builders/docker
-    id: Build
     args:
       - build
       - '--no-cache'
@@ -12,19 +9,14 @@ steps:
       - '-f'
       - server/Dockerfile
       - server
-
-  # Step 2: Push image to Artifact Registry
+    id: Build
   - name: gcr.io/cloud-builders/docker
-    id: Push
     args:
       - push
       - >-
         $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
-
-  # Step 3: Deploy to Cloud Run
+    id: Push
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
-    id: Deploy
-    entrypoint: gcloud
     args:
       - run
       - services
@@ -37,15 +29,14 @@ steps:
         --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
       - '--region=$_DEPLOY_REGION'
       - '--quiet'
-
+    id: Deploy
+    entrypoint: gcloud
 images:
   - >-
     $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
-
 options:
   substitutionOption: ALLOW_LOOSE
   logging: CLOUD_LOGGING_ONLY
-
 substitutions:
   _AR_REPOSITORY: cloud-run-source-deploy
   _AR_PROJECT_ID: gdg-lwc-leaderboard
@@ -55,7 +46,6 @@ substitutions:
   REPO_NAME: google-skills-leaderboard
   _DEPLOY_REGION: asia-south1
   _AR_HOSTNAME: asia-south1-docker.pkg.dev
-
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed
