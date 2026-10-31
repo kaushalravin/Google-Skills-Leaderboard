@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useLeaderboard } from '../hooks/useLeaderboard.js'
 import { fetchParticipant } from '../api.js'
-import { formatDateTimeIST, formatTimeIST, nextUpdateEstimate, relativeTime, plural } from '../lib/leaderboard.js'
+import { formatDateTimeIST, plural } from '../lib/leaderboard.js'
 import LeaderboardTable from '../components/LeaderboardTable.jsx'
 import BadgeModal from '../components/BadgeModal.jsx'
 import Podium from '../components/Podium.jsx'
@@ -10,6 +10,8 @@ import ScoringInfo from '../components/ScoringInfo.jsx'
 import ActivityChart from '../components/ActivityChart.jsx'
 import MeBar from '../components/MeBar.jsx'
 import GDG_LOGO from '../assets/gdg-on-campus-mit.jpeg'
+import BANNER_DESKTOP from '../assets/banner-desktop.png'
+import BANNER_MOBILE from '../assets/banner-mobile.png'
 import '../styles/LeaderboardPage.css'
 
 const DEFAULT_LIMIT = 25
@@ -27,23 +29,7 @@ function toSearchParams({ q }) {
   return params
 }
 
-function Freshness({ summary, now }) {
-  const updated = summary.lastSuccessfulUpdate
-  if (!updated) return <>{plural(summary.total, 'participant')}. Not updated yet.</>
-  const next = nextUpdateEstimate(updated, now)
-  return (
-    <>
-      {plural(summary.total, 'participant')}. Updated{' '}
-      <time dateTime={updated} title={formatDateTimeIST(updated)}>{relativeTime(updated, now)}</time>.
-      {next && (
-        <>
-          {' '}Next update expected around{' '}
-          <time dateTime={next} title={formatDateTimeIST(next)}>{formatTimeIST(next)} IST</time>.
-        </>
-      )}
-    </>
-  )
-}
+
 
 function GdgCampusBadgeFallback() {
   return (
@@ -63,8 +49,8 @@ function GdgCampusBadgeFallback() {
         <path d="M104 162 L130 182" stroke="#4285F4" strokeWidth="16" strokeLinecap="round" fill="none" />
         <path d="M190 128 L216 148 C221 152 221 158 216 162 L190 182" stroke="#34A853" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" fill="none" />
         <path d="M216 162 L190 182" stroke="#FBBC05" strokeWidth="16" strokeLinecap="round" fill="none" />
-        <text x="160" y="214" textAnchor="middle" fontFamily="Poppins, sans-serif" fontSize="14" fontWeight="700" fill="#202124" letterSpacing="0.5">GDG On Campus</text>
-        <text x="160" y="234" textAnchor="middle" fontFamily="Poppins, sans-serif" fontSize="12" fontWeight="600" fill="#4285F4" letterSpacing="1">MIT</text>
+        <text x="160" y="214" textAnchor="middle" fontFamily="'Google Sans', 'Google Sans Text', sans-serif" fontSize="14" fontWeight="700" fill="#202124" letterSpacing="0.5">GDG On Campus</text>
+        <text x="160" y="234" textAnchor="middle" fontFamily="'Google Sans', 'Google Sans Text', sans-serif" fontSize="12" fontWeight="600" fill="#4285F4" letterSpacing="1">MIT</text>
       </svg>
     </div>
   )
@@ -111,7 +97,6 @@ export default function LeaderboardPage() {
   const [linked, setLinked] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [overview, setOverview] = useState(null)
-  const [now, setNow] = useState(() => Date.now())
   const [aboutOpen, setAboutOpen] = useState(false)
   const debounceRef = useRef(null)
   const searchRef = useRef(null)
@@ -129,7 +114,9 @@ export default function LeaderboardPage() {
     loadingMore,
     loadMoreError,
     hasMore,
+    canCollapse,
     loadMore,
+    collapse,
     total,
     loadedCount,
     error,
@@ -178,14 +165,8 @@ export default function LeaderboardPage() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [popupOpen])
 
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 60 * 1000)
-    return () => clearInterval(id)
-  }, [])
-
   const handleOverview = useCallback((overviewData) => {
     setOverview({ total: overviewData.pagination.total, lastSuccessfulUpdate: overviewData.lastSuccessfulUpdate })
-    setNow(Date.now())
   }, [])
 
   const updateQuery = useCallback((changes, options) => {
@@ -274,11 +255,10 @@ export default function LeaderboardPage() {
               <span className="chip-dot" aria-hidden="true" />
               <span>Google Developer Groups On Campus • MIT</span>
             </div>
-            <h2 className="about-title">About the Google Cloud Study Jam</h2>
+            <h2 className="about-title">About Google Cloud Learn with Communities</h2>
             <p id="about-desc" className={`about-desc${aboutOpen ? ' is-open' : ''}`}>
-              Google Cloud Learn with Communities, run at MIT as the Google Cloud Study Jam,
-              gives students free hands-on labs on Google Skills. Complete the accepted labs to
-              earn badges; this leaderboard ranks participants by badges, then credits.
+              Google Cloud Learn with Communities gives students free hands-on labs on Google Skills.
+              Complete the accepted labs to earn badges; this leaderboard ranks participants by badges, then credits.
             </p>
             <button
               type="button"
@@ -308,7 +288,20 @@ export default function LeaderboardPage() {
       </div>
 
       <section id="leaderboard" className="leaderboard-wide-container my-4" aria-labelledby="leaderboard-heading">
-        <h1 id="leaderboard-heading" className="leaderboard-heading">Google Cloud Study Jam leaderboard</h1>
+        <div className="leaderboard-banner-wrapper">
+          <picture>
+            <source media="(max-width: 767.98px)" srcSet={BANNER_MOBILE} />
+            <img
+              src={BANNER_DESKTOP}
+              alt="Google Cloud Learn with Communities Leaderboard Banner"
+              className="leaderboard-banner-img"
+              width="1456"
+              height="541"
+            />
+          </picture>
+        </div>
+
+        <h1 id="leaderboard-heading" className="leaderboard-heading">Google Cloud LWC Leaderboard</h1>
         <div className="heading-bar" aria-hidden="true">
           <span />
           <span />
@@ -317,7 +310,7 @@ export default function LeaderboardPage() {
         </div>
         {summary && (
           <p className="heading-meta">
-            <Freshness summary={summary} now={now} />
+            {plural(summary.total, 'participant')}
           </p>
         )}
 
@@ -373,7 +366,9 @@ export default function LeaderboardPage() {
           loadingMore={loadingMore}
           loadMoreError={loadMoreError}
           hasMore={hasMore}
+          canCollapse={canCollapse}
           onLoadMore={loadMore}
+          onCollapse={collapse}
           total={total}
           loadedCount={loadedCount}
           error={error}

@@ -215,6 +215,23 @@
   padding: 0 var(--space-4);
 }
 
+.leaderboard-banner-wrapper {
+  width: 100%;
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-5);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background-color: #ffffff;
+}
+
+.leaderboard-banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .leaderboard-heading {
   text-align: center;
   font-size: 2.6rem;

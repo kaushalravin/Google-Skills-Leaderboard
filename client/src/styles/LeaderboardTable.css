@@ -1,132 +1,195 @@
-/* overflow: clip rounds the corners without becoming a scroll container, so the header can stick to the page */
-.wider-table-container {
+/* ==========================================================================
+   Leaderboard Card & Table (Matching attached desktop & mobile styles)
+   ========================================================================== */
+
+.lb-table-card {
   width: 100%;
-  border-radius: var(--radius-md);
+  background-color: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   overflow: hidden;
-  overflow: clip;
-  border: 1px solid var(--hairline);
-  background-color: var(--card-bg);
 }
 
 .lb-table {
-  --bs-table-bg: var(--card-bg);
-  --bs-table-color: var(--ink);
-  --bs-table-border-color: var(--hairline);
-  --bs-table-hover-bg: var(--surface);
-  --bs-table-hover-color: var(--ink);
-  /* The container draws the outer edge; hidden outer cell borders avoid a doubled line */
-  border-style: hidden;
-  color: var(--ink);
-  background-color: var(--card-bg);
-  margin-bottom: 0;
-  vertical-align: middle;
   width: 100%;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-style: hidden;
+  background-color: transparent;
+  color: var(--ink, #202124);
+  font-family: var(--font);
 }
 
-.lb-table th {
-  font-weight: 600;
-  font-size: 1rem;
-  padding: var(--space-3) var(--space-4);
-  vertical-align: middle;
-}
-
-.lb-table td {
-  font-size: 1rem;
-  padding: var(--space-3) var(--space-4);
-  vertical-align: middle;
-}
-
-/* Collapsed borders don't travel with a sticky cell, so the header draws its own bottom line */
+/* Table Header */
 .lb-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  color: var(--ink);
-  background-color: var(--blue-light);
-  box-shadow: inset 0 -1px 0 var(--hairline);
-}
-
-.lb-table .col-rank,
-.lb-table .col-credits {
-  font-variant-numeric: tabular-nums;
-}
-
-.lb-none {
-  color: var(--text-muted);
-}
-
-.rank-cell {
-  position: relative;
-  display: inline-block;
+  background-color: #EDF3FC;
+  color: #4A607A;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 16px 20px;
   vertical-align: middle;
-}
-
-.rank-cell__move {
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  margin-left: var(--space-1);
-  transform: translateY(-50%);
+  border: none;
+  border-bottom: 1px solid #E1E8F2;
   white-space: nowrap;
 }
 
-.rank-move {
+/* Table Body */
+.lb-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.lb-table tbody tr:hover {
+  background-color: #F8FAFD;
+}
+
+.lb-table tbody td {
+  padding: 14px 20px;
+  vertical-align: middle;
+  border-top: none;
+  border-bottom: 1px solid #F1F4F8;
+  border-left: none;
+  border-right: none;
+  font-size: 0.9375rem;
+  color: var(--ink, #202124);
+}
+
+.lb-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Rank Circle & Movement */
+.rank-cell-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rank-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
   font-size: 0.875rem;
-  font-weight: 600;
   line-height: 1;
+  flex-shrink: 0;
+}
+
+.rank-circle--gold {
+  background-color: #FBBC04;
+  color: #ffffff;
+}
+
+.rank-circle--silver {
+  background-color: #9AA0A6;
+  color: #ffffff;
+}
+
+.rank-circle--bronze {
+  background-color: #C47A37;
+  color: #ffffff;
+}
+
+.rank-circle--blue {
+  background-color: #E8F0FE;
+  color: #1967D2;
+}
+
+.rank-move {
+  font-size: 0.75rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .rank-move--up {
-  color: var(--rank-up);
+  color: #188038;
 }
 
 .rank-move--down {
-  color: var(--rank-down);
+  color: #D93025;
 }
 
-.rank-move--new {
-  font-weight: 500;
-  color: var(--text-muted);
+.rank-move--same {
+  color: #9AA0A6;
+  font-size: 0.875rem;
 }
 
-.profile-cloud-link {
+/* Name Cell */
+.name-cell {
   display: inline-flex;
-  vertical-align: middle;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #ffffff;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.name-link-text {
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: var(--ink, #202124);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.name-link-text:hover {
+  color: #1A73E8;
+}
+
+/* Google Skills Profile */
+.skills-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #1A73E8;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.skills-profile-link:hover {
+  text-decoration: underline;
 }
 
 .skills-cloud-icon {
   display: inline-block;
-  vertical-align: middle;
+  border-radius: 4px;
 }
 
+/* Badges View Button */
 .view-badges-btn {
   display: inline-flex;
-  flex-direction: column;
-  vertical-align: middle;
   align-items: center;
-  gap: 2px;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  gap: 6px;
   background: transparent;
-  color: var(--ink);
-  white-space: nowrap;
-}
-
-@media (pointer: coarse) {
-  .view-badges-btn {
-    min-height: var(--touch-min);
-    justify-content: center;
-  }
+  border: 1px solid transparent;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .view-badges-btn:hover {
-  background-color: var(--blue-light);
-  border-color: var(--hairline);
+  background-color: #EDF3FC;
+  border-color: #DADCE0;
 }
 
 .view-badges-btn:focus-visible {
@@ -134,108 +197,212 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-.lb-table .col-rank,
-.lb-table .col-badges,
-.lb-table .col-credits,
-.lb-table .col-swags {
-  white-space: nowrap;
+/* Credits */
+.credits-num {
+  font-weight: 600;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink, #202124);
 }
 
-/* Fixed widths act as minimums in an auto-layout table, so only apply them where the name column still has room. */
-@media (min-width: 992px) {
-  .lb-table th { white-space: nowrap; }
-  .lb-table .col-rank { width: 100px; }
-  .lb-table .col-profile { width: 180px; }
-  .lb-table .col-badges { width: 170px; }
-  .lb-table .col-credits { width: 120px; }
-  .lb-table .col-swags { width: 130px; }
-}
-
-.lb-table .col-name {
-  overflow-wrap: anywhere;
-}
-
-.name-cell {
-  display: block;
-}
-
-.name-link {
-  /* Contains the visually hidden "(opens in a new tab)", which would otherwise widen the page past a truncated name */
-  position: relative;
-  display: none;
-  color: var(--link-text);
-  text-decoration: underline;
-}
-
-.lb-table .swag-tag-gold,
-.lb-table .swag-tag-silver {
-  padding: 2px 10px;
+/* Swag Pills */
+.swag-tag-gold {
+  display: inline-block;
+  background-color: #FFF8E1;
+  border: 1px solid #FFD54F;
+  color: #8A6000;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
   vertical-align: middle;
+  letter-spacing: 0.01em;
 }
 
-/* Placeholders take the size of the content they stand in for, so rows don't shift when data arrives */
-.lb-ph {
-  min-height: 0;
+.swag-tag-silver {
+  display: inline-block;
+  background-color: #F3F4F6;
+  border: 1px solid #B0B8C4;
+  color: #4A5568;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 999px;
   vertical-align: middle;
-  border-radius: var(--radius-sm);
+  letter-spacing: 0.01em;
 }
 
-.lb-ph--rank { width: 1.5em; height: 1em; }
-.lb-ph--name { width: 60%; max-width: 220px; height: 1em; }
-.lb-ph--icon { width: 26px; height: 26px; }
-.lb-ph--num { width: 2em; height: 1em; }
-.lb-ph--pill { width: 52px; height: 25px; border-radius: var(--radius-pill); }
-.lb-ph--track { width: 92px; height: 20px; }
-.lb-ph-line { display: block; }
-.view-badges-btn.is-placeholder:hover {
-  background: transparent;
-  border-color: transparent;
+.lb-none {
+  color: #9AA0A6;
+  font-size: 0.875rem;
+}
+
+/* Legend Underneath Table */
+.lb-legend {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: #5F6368;
+  margin-top: 14px;
+  margin-left: 6px;
+  font-weight: 500;
+  user-select: none;
+}
+
+.lb-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-up {
+  color: #188038;
+  font-weight: 700;
+}
+
+.legend-down {
+  color: #D93025;
+  font-weight: 700;
+}
+
+.legend-badge {
+  color: #4285F4;
+  font-size: 0.85rem;
 }
 
 /* ==========================================================================
-   Load More Controls & Indicators
+   Mobile Cards View (Matching mobile reference screenshot)
+   ========================================================================== */
+
+.lb-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.lb-mobile-card {
+  background-color: #ffffff;
+  border: 1px solid #EDF2F7;
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lb-mobile-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lb-mobile-card__rank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 28px;
+}
+
+.lb-mobile-card__rank .rank-move {
+  font-size: 0.7rem;
+  margin-top: 2px;
+}
+
+.lb-mobile-card__user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.lb-mobile-card__user .user-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #202124);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.mobile-cloud-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.lb-mobile-card__stats {
+  background-color: #F8FAFD;
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-credits {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #5F6368;
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-mobile-card__swag {
+  display: flex;
+  justify-content: center;
+  padding-top: 2px;
+}
+
+/* ==========================================================================
+   Load More & Collapse Controls
    ========================================================================== */
 
 .lb-load-more-wrap {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  gap: 10px;
   margin: var(--space-4) 0 var(--space-5);
-  gap: var(--space-2);
 }
 
 .lb-load-more-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 10px 24px;
-  min-height: 44px;
-  border-radius: var(--radius-pill);
+  gap: 6px;
+  padding: 6px 16px;
   font-family: var(--font);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--brand-blue);
-  background-color: var(--card-bg);
-  border: 1.5px solid rgba(66, 133, 244, 0.35);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid rgba(66, 133, 244, 0.35);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.08);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  transition: all 0.15s ease;
   user-select: none;
+  line-height: 1.4;
 }
 
 .lb-load-more-btn:hover:not(:disabled) {
   background-color: var(--blue-light);
   border-color: var(--brand-blue);
   color: #1a73e8;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
+  box-shadow: 0 1px 3px rgba(66, 133, 244, 0.2);
 }
 
 .lb-load-more-btn:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(66, 133, 244, 0.25);
+  transform: translateY(1px);
 }
 
 .lb-load-more-btn:focus-visible {
@@ -245,8 +412,7 @@
 
 .lb-load-more-btn.is-loading {
   cursor: wait;
-  opacity: 0.9;
-  border-color: rgba(66, 133, 244, 0.5);
+  opacity: 0.85;
   background-color: var(--blue-light);
 }
 
@@ -258,35 +424,27 @@
 .lb-load-more-btn.is-error:hover {
   background-color: #fce8e6;
   border-color: #ea4335;
-  box-shadow: 0 4px 12px rgba(234, 67, 53, 0.2);
 }
 
-.lb-load-more-icon-wrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(66, 133, 244, 0.12);
-  color: var(--brand-blue);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+.lb-load-more-arrow {
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform 0.15s ease;
 }
 
-.lb-load-more-btn:hover .lb-load-more-icon-wrap {
-  transform: translateY(2px);
+.lb-load-more-btn:hover .lb-load-more-arrow:not(.is-up) {
+  transform: translateY(1px);
 }
 
-.lb-load-more-icon {
-  display: block;
+.lb-collapse-btn:hover .lb-load-more-arrow.is-up {
+  transform: translateY(-1px);
 }
 
 .lb-load-more-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2.5px solid rgba(66, 133, 244, 0.2);
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(66, 133, 244, 0.25);
   border-top-color: var(--brand-blue);
-  border-right-color: #34a853;
   border-radius: 50%;
   animation: lb-spin 0.75s linear infinite;
 }
@@ -297,174 +455,50 @@
   }
 }
 
-.lb-load-more-label {
-  font-weight: 600;
-}
-
-.lb-load-more-badge {
+/* Skeleton Placeholders */
+.lb-ph {
+  min-height: 0;
+  vertical-align: middle;
+  border-radius: var(--radius-sm);
   display: inline-block;
-  padding: 2px 8px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border-radius: var(--radius-pill);
-  background-color: rgba(66, 133, 244, 0.1);
-  color: var(--brand-blue);
-  font-variant-numeric: tabular-nums;
 }
 
-.lb-load-more-progress {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.lb-all-loaded {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.lb-all-loaded__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
+.lb-ph--rank-circle {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(52, 168, 83, 0.12);
-  color: #34a853;
 }
 
-@media (pointer: coarse) {
-  .lb-load-more-btn {
-    min-height: var(--touch-min);
-  }
+.lb-ph--avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
 }
 
-@media (max-width: 991.98px) {
-  .lb-table .col-profile {
-    display: none;
-  }
-
-  .name-text {
-    display: none;
-  }
-
-  .name-link {
-    display: inline;
-  }
+.lb-ph--name {
+  width: 140px;
+  height: 1em;
 }
 
-@media (max-width: 767.98px) {
-  .lb-table th,
-  .lb-table td {
-    padding: var(--space-3) var(--space-2);
-  }
+.lb-ph--link {
+  width: 90px;
+  height: 1em;
 }
 
-@media (max-width: 575.98px) {
-  .lb-table {
-    table-layout: auto;
-    min-width: 620px;
-  }
+.lb-ph--num {
+  width: 2em;
+  height: 1em;
+}
 
-  .wider-table-container {
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-  }
+.lb-ph--pill {
+  width: 52px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+}
 
-  .lb-table th {
-    font-size: 0.875rem;
-    padding: var(--space-2);
-  }
-
-  .lb-table td {
-    font-size: 0.9375rem;
-    padding: var(--space-2) var(--space-1);
-  }
-
-  .lb-table .col-rank {
-    width: 64px;
-    min-width: 64px;
-  }
-
-  .lb-table .col-name {
-    width: 190px;
-    min-width: 190px;
-  }
-
-  .lb-table .col-badges {
-    width: 180px;
-    min-width: 180px;
-  }
-
-  .lb-table .col-credits {
-    display: table-cell;
-    width: 100px;
-    min-width: 100px;
-  }
-
-  .lb-table .col-swags {
-    display: table-cell;
-    width: 110px;
-    min-width: 110px;
-  }
-
-  .rank-cell {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .rank-cell__move {
-    position: static;
-    margin-left: 0;
-    transform: none;
-    line-height: 1;
-  }
-
-  /* A zero-width cell lets the name take only the space left over, so long names truncate instead of widening the table */
-  .lb-table td.col-name {
-    width: 100%;
-    max-width: 0;
-  }
-
-  .name-link {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .lb-table .swag-tag-gold,
-  .lb-table .swag-tag-silver {
-    padding: 2px var(--space-2);
-  }
-
-  .view-badges-btn {
-    display: flex;
-    width: 170px;
-    max-width: 100%;
-    min-width: 0;
-    min-height: var(--touch-min);
-    justify-content: center;
-    padding: var(--space-1);
-  }
-
-  .lb-ph--track { width: 80px; height: 19px; }
-  .lb-ph--pill { height: 18px; vertical-align: top; }
-
-
+.lb-ph--track {
+  width: 100px;
+  height: 16px;
 }
 
 .lb-message {
@@ -482,25 +516,4 @@
   background: var(--brand-blue);
   border: 1px solid var(--brand-blue);
   border-radius: var(--radius-sm);
-}
-
-/* Fixed narrow columns below 992px too, so the loading placeholder and the real rows lay out identically */
-@media (min-width: 576px) and (max-width: 991.98px) {
-  .lb-table .col-rank { width: 84px; }
-  .lb-table .col-badges { width: 150px; }
-  .lb-table .col-credits { width: 92px; }
-  .lb-table .col-swags { width: 104px; }
-}
-
-@media (max-width: 575.98px) {
-  .lb-table td.col-name { padding-right: var(--space-3); }
-  .lb-table td.col-badges { padding-left: var(--space-3); }
-}
-
-/* A taller tap area for the name link without changing the row height */
-@media (pointer: coarse), (max-width: 575.98px) {
-  .lb-table .name-link {
-    padding-block: 11px;
-    margin-block: -11px;
-  }
 }

@@ -1,0 +1,188 @@
+/* ==========================================================================
+   Contact Page
+   ========================================================================== */
+
+.contact-page {
+  padding: var(--space-6) var(--space-5) calc(2 * var(--space-6));
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+/* Header */
+.contact-header {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.contact-header__eyebrow {
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--link-text);
+  background: var(--blue-light);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  margin-bottom: var(--space-3);
+}
+
+.contact-header__title {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+  margin: 0 0 var(--space-3);
+}
+
+.contact-header__desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* Section */
+.contact-section {
+  margin-bottom: var(--space-6);
+}
+
+.contact-section__heading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 var(--space-4);
+  letter-spacing: -0.01em;
+}
+
+/* Organizer Cards */
+.contact-organizers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.organizer-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--card-bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.organizer-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.organizer-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.organizer-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.organizer-card__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.organizer-card__phone {
+  font-size: 0.875rem;
+  color: var(--link-text);
+  font-weight: 500;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s ease;
+}
+
+.organizer-card__phone:hover {
+  text-decoration: underline;
+}
+
+/* CTA Buttons */
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.contact-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border-radius: var(--radius-pill);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: var(--font);
+  text-decoration: none;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.contact-cta--whatsapp {
+  background-color: #25D366;
+  color: #ffffff;
+}
+
+.contact-cta--whatsapp:hover {
+  background-color: #1ebe5d;
+  box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35);
+  transform: translateY(-1px);
+  color: #ffffff;
+}
+
+.contact-cta--gdg {
+  background-color: var(--card-bg);
+  color: var(--brand-blue);
+  border: 1.5px solid rgba(66, 133, 244, 0.4);
+}
+
+.contact-cta--gdg:hover {
+  background-color: var(--blue-light);
+  border-color: var(--brand-blue);
+  box-shadow: 0 3px 10px rgba(66, 133, 244, 0.15);
+  transform: translateY(-1px);
+  color: var(--brand-blue);
+}
+
+/* Mobile */
+@media (max-width: 575.98px) {
+  .contact-page {
+    padding: var(--space-5) var(--space-4) var(--space-6);
+  }
+
+  .contact-organizers {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-links {
+    flex-direction: column;
+  }
+
+  .contact-cta {
+    justify-content: center;
+  }
+}

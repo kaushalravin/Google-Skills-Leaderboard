@@ -6,8 +6,7 @@ import '../styles/Navbar.css'
 
 const RESOURCES = [
   { label: 'Onboarding guide', href: 'https://www.instagram.com/p/DAnGLEbNbgz/' },
-  { label: 'GenAI tutorials',  href: 'https://gen-ai-tutorials.netlify.app/' },
-  { label: 'Syllabus',         href: 'https://docs.google.com/spreadsheets/d/1XoxkJ4OvDwN44iDJt6EUesfuJIYiBj8Y5vl_sVL_dKk/pubhtml?gid=0&single=true' },
+  { label: 'Syllabus',         href: 'https://docs.google.com/spreadsheets/u/0/d/e/2PACX-1vTVMEFW24yi5IVcBblZFEK5xMdQyeF9pndf-wxE37BKu5hyOghhSkYiCHW6rSLjNJd5U3OI_E_I9vZi/pubhtml?gid=411469390&single=true&pli=1' },
 ]
 
 export default function Navbar() {
@@ -90,13 +89,15 @@ export default function Navbar() {
                 </Link>
               </li>
               <li className="nav-item">
-                <NavLink
-                  to="/community"
-                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                <a
+                  href="https://gdg.community.dev/gdg-on-campus-madras-institute-of-technology-chennai-india/"
+                  className="nav-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={() => setNavCollapsed(true)}
                 >
                   Community
-                </NavLink>
+                </a>
               </li>
 
               <li className={`nav-item dropdown ${dropdownOpen ? 'show' : ''}`} ref={dropdownRef}>
@@ -134,16 +135,13 @@ export default function Navbar() {
               </li>
 
               <li className="nav-item">
-                <a
-                  href="https://forms.gle/8fzdaf1Pz2YkBbnA8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="nav-link"
+                <NavLink
+                  to="/contact"
+                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                   onClick={() => setNavCollapsed(true)}
                 >
                   Contact
-                  <span className="visually-hidden"> (opens in a new tab)</span>
-                </a>
+                </NavLink>
               </li>
             </ul>
           </div>

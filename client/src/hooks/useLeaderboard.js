@@ -94,6 +94,8 @@ export function useLeaderboard({ limit = DEFAULT_BATCH_SIZE, search = '' } = {})
   const totalPages = meta?.pagination?.totalPages ?? 1
   const hasMore = Boolean(meta) && currentPage < totalPages && accumulatedRows.length < total
 
+  const canCollapse = accumulatedRows.length > limit
+
   const loadMore = useCallback(() => {
     if (loading || loadingMore || !hasMore) return
     if (loadMoreError) {
@@ -103,6 +105,11 @@ export function useLeaderboard({ limit = DEFAULT_BATCH_SIZE, search = '' } = {})
       setCurrentPage((p) => p + 1)
     }
   }, [loading, loadingMore, hasMore, loadMoreError])
+
+  const collapse = useCallback(() => {
+    setCurrentPage(1)
+    setAccumulatedRows((prev) => prev.slice(0, limit))
+  }, [limit])
 
   const retry = useCallback(() => {
     setReloadKey((k) => k + 1)
@@ -129,7 +136,9 @@ export function useLeaderboard({ limit = DEFAULT_BATCH_SIZE, search = '' } = {})
     loadingMore,
     loadMoreError,
     hasMore,
+    canCollapse,
     loadMore,
+    collapse,
     total,
     loadedCount: accumulatedRows.length,
     error,

@@ -5,6 +5,7 @@ import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import LeaderboardPage from './pages/LeaderboardPage.jsx'
 import CommunityPage from './pages/CommunityPage.jsx'
+import ContactPage from './pages/ContactPage.jsx'
 
 // The popup route /p/:userId is the leaderboard with a participant open, not a separate page
 function pageOf(pathname) {
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="/" element={<LeaderboardPage />} />
           <Route path="/p/:userId" element={<LeaderboardPage />} />
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

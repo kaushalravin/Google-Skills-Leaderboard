@@ -1,27 +1,32 @@
 .badge-track {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 8px;
   vertical-align: middle;
 }
 
 .badge-track__bar {
-  display: flex;
-  gap: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
   /* Room for the tick markers under segments 5 and 10 */
   padding-bottom: 6px;
 }
 
 .badge-track__segment {
   position: relative;
-  flex: 1 1 0;
-  height: 100%;
-  border-radius: 2px;
-  background: var(--track-empty);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #E0E4EA;
+  flex: none;
+  display: inline-block;
+  transition: background-color 0.2s ease;
 }
 
 .badge-track__segment.is-filled {
-  background: var(--brand-blue);
+  background: var(--google-blue, #4285F4);
 }
 
 .badge-track__segment:nth-child(5)::after,
@@ -30,57 +35,52 @@
   position: absolute;
   left: 50%;
   bottom: -6px;
-  width: 2px;
+  width: 1.5px;
   height: 4px;
-  margin-left: -1px;
+  margin-left: -0.75px;
   border-radius: 1px;
 }
 
 .badge-track__segment:nth-child(5)::after {
-  background: var(--podium-silver);
+  background: #9AA0A6;
 }
 
 .badge-track__segment:nth-child(10)::after {
-  background: var(--podium-gold);
+  background: #FBBC04;
 }
 
 .badge-track__count {
-  min-width: 1.5em;
-  /* The bar's bottom padding holds the ticks; lift the number to the segments' centre */
-  margin-bottom: 6px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
-  text-align: right;
+  font-size: 0.95rem;
+  margin-bottom: 5px;
+  min-width: 1em;
+}
+
+.badge-track--sm .badge-track__segment {
+  width: 6.5px;
+  height: 6.5px;
 }
 
 .badge-track--sm .badge-track__bar {
-  width: 70px;
-  height: 12px;
+  gap: 3.5px;
 }
 
 .badge-track--sm .badge-track__count {
   font-size: 0.875rem;
 }
 
+.badge-track--md .badge-track__segment {
+  width: 8px;
+  height: 8px;
+}
+
 .badge-track--md .badge-track__bar {
-  width: 180px;
-  height: 16px;
-  gap: 3px;
+  gap: 4px;
 }
 
 .badge-track--md .badge-track__count {
   font-size: 1rem;
-}
-
-/* Narrow phones: a shorter bar keeps the track inside a 360px table cell */
-@media (max-width: 575.98px) {
-  .badge-track--sm {
-    gap: var(--space-1);
-  }
-
-  .badge-track--sm .badge-track__bar {
-    width: 56px;
-  }
 }
