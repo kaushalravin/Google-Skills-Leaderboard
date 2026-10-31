@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from 'react'
 import { prefersReducedMotion } from '../lib/motion.js'
 import { swagTier, plural, formatCredits, rankChange, badgeButtonLabel, initials } from '../lib/leaderboard.js'
 import BadgeTrack from './BadgeTrack.jsx'
-import GOOGLE_CLOUD_ICON from '../assets/google-cloud.jpg'
+import GOOGLE_CLOUD_ICON from '../assets/google-cloud.png'
 import '../styles/LeaderboardTable.css'
 
 const SKELETON_ROWS = 6
