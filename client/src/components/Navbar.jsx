@@ -2,10 +2,11 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import GDG_LOGO from '../assets/gdg-on-campus-mit.jpeg'
 import AU_LOGO from '../assets/anna-university.png'
+import ONBOARDING_GUIDE from '../assets/GDG_Learn_with_Communities_Onboarding_Guide.pdf'
 import '../styles/Navbar.css'
 
 const RESOURCES = [
-  { label: 'Onboarding guide', href: 'https://www.instagram.com/p/DAnGLEbNbgz/' },
+  { label: 'Onboarding guide', href: ONBOARDING_GUIDE, download: 'GDG-On-Campus-MIT-Onboarding-Guide.pdf' },
   { label: 'Syllabus',         href: 'https://docs.google.com/spreadsheets/u/0/d/e/2PACX-1vTVMEFW24yi5IVcBblZFEK5xMdQyeF9pndf-wxE37BKu5hyOghhSkYiCHW6rSLjNJd5U3OI_E_I9vZi/pubhtml?gid=411469390&single=true&pli=1' },
 ]
 
@@ -118,8 +119,9 @@ export default function Navbar() {
                     <li key={item.label}>
                       <a
                         href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        target={item.download ? undefined : '_blank'}
+                        rel={item.download ? undefined : 'noopener noreferrer'}
+                        download={item.download}
                         className="dropdown-item"
                         onClick={() => {
                           setDropdownOpen(false)
@@ -127,7 +129,9 @@ export default function Navbar() {
                         }}
                       >
                         {item.label}
-                        <span className="visually-hidden"> (opens in a new tab)</span>
+                        <span className="visually-hidden">
+                          {item.download ? ' (downloads PDF)' : ' (opens in a new tab)'}
+                        </span>
                       </a>
                     </li>
                   ))}
