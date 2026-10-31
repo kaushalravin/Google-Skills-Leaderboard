@@ -41,6 +41,8 @@ export default function Footer() {
       <div className="footer__inner">
         <p className="footer__copy">
           © {CURRENT_YEAR} GDG on Campus MIT · Google Cloud Study Jam
+          <br />
+          Built by Kaushal N and Sharukesh Alagiri
         </p>
         {health && (
           <p className={`footer__status footer__status--${health.tone}`}>

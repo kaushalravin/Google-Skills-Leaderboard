@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
 import { prefersReducedMotion } from '../lib/motion.js'
-import { swagTier, plural, formatCredits, rankChange, badgeSummary, badgeButtonLabel } from '../lib/leaderboard.js'
+import { swagTier, plural, formatCredits, rankChange, badgeButtonLabel } from '../lib/leaderboard.js'
 import BadgeTrack from './BadgeTrack.jsx'
 import GOOGLE_CLOUD_ICON from '../assets/google-cloud.jpg'
 import '../styles/LeaderboardTable.css'
@@ -119,7 +119,7 @@ function TableHead() {
         <th scope="col" className="col-name">Name</th>
         <th scope="col" className="text-center col-profile">Google Skills profile</th>
         <th scope="col" className="text-center col-badges">Badges</th>
-        <th scope="col" className="text-center col-credits">Credits</th>
+        <th scope="col" className="text-center col-credits">No. of Credits</th>
         <th scope="col" className="text-center col-swags">Swag</th>
       </tr>
     </thead>
@@ -142,14 +142,12 @@ function SkeletonTable() {
               <td className="col-name">
                 <span className="name-cell">
                   <span className="lb-ph-line"><span className="placeholder lb-ph lb-ph--name" /></span>
-                  <span className="name-cell__swag"><span className="placeholder lb-ph lb-ph--pill" /></span>
                 </span>
               </td>
               <td className="text-center col-profile"><span className="placeholder lb-ph lb-ph--icon" /></td>
               <td className="text-center col-badges">
                 <span className="view-badges-btn is-placeholder">
                   <span className="placeholder lb-ph lb-ph--track" />
-                  <span className="view-badges-btn__summary"><span className="placeholder lb-ph lb-ph--summary" /></span>
                 </span>
               </td>
               <td className="text-center col-credits"><span className="placeholder lb-ph lb-ph--num" /></td>
@@ -163,7 +161,6 @@ function SkeletonTable() {
 }
 
 function NameCell({ row }) {
-  const count = row.validBadgeCount ?? 0
   return (
     <span className="name-cell">
       <span className="name-text">{row.username}</span>
@@ -177,7 +174,6 @@ function NameCell({ row }) {
         {row.username}
         <span className="visually-hidden"> (opens in a new tab)</span>
       </a>
-      {swagTier(count) && <span className="name-cell__swag"><SwagPill count={count} /></span>}
     </span>
   )
 }
@@ -297,7 +293,6 @@ export default function LeaderboardTable({ data, dataKey, loading, error, onRetr
                       title={label}
                     >
                       <BadgeTrack count={count} size="sm" />
-                      <span className="view-badges-btn__summary" aria-hidden="true">{badgeSummary(row)}</span>
                     </button>
                   </td>
                   <td className="text-center col-credits">{formatCredits(row.validCredits)}</td>

@@ -72,7 +72,8 @@
 }
 
 .scoring-info__badge-head {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(6.75rem, auto);
   gap: var(--space-3);
   margin-top: var(--space-3);
   padding-bottom: var(--space-1);
@@ -86,9 +87,7 @@
 
 .scoring-info__badge {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-flow: column;
-  grid-auto-columns: auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(6.75rem, auto);
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-1) 0;
@@ -192,7 +191,6 @@
 
   .scoring-info__badge {
     grid-template-columns: auto minmax(0, 1fr);
-    grid-auto-flow: row;
     row-gap: 0;
     padding: var(--space-1) 0 var(--space-2);
   }
@@ -226,6 +224,7 @@
 
 @media (min-width: 992px) {
   .scoring-info__body {
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr) minmax(0, 0.9fr);
+    column-gap: clamp(2.5rem, 5vw, 5rem);
   }
 }

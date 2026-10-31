@@ -166,9 +166,13 @@ export function badgeSummary(row) {
   return summaryParts(row).join(' · ')
 }
 
-// Starts with the visible "7 badges · 41 credits" so speech users can say what they see (WCAG 2.5.3).
+export function badgeCountSummary(row) {
+  return plural(row.validBadgeCount ?? 0, 'badge')
+}
+
+// Starts with the visible badge count so speech users can say what they see (WCAG 2.5.3).
 export function badgeButtonLabel(row) {
-  return `${summaryParts(row).join(', ')}, view badges for ${row.username}`
+  return `${badgeCountSummary(row)}, view badges for ${row.username}`
 }
 
 export function formatCredits(value) {

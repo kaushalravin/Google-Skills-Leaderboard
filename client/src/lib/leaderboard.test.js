@@ -132,9 +132,9 @@ test('badgeSummary leaves out unknown credits', () => {
   assert.equal(badgeSummary({ validBadgeCount: 3, validCredits: null }), '3 badges')
 })
 
-test('badgeButtonLabel starts with the visible summary', () => {
-  assert.equal(badgeButtonLabel({ validBadgeCount: 7, validCredits: 41, username: 'Asha Raman' }), '7 badges, 41 credits, view badges for Asha Raman')
-  assert.equal(badgeButtonLabel({ validBadgeCount: 1, validCredits: 0, username: 'A' }), '1 badge, 0 credits, view badges for A')
+test('badgeButtonLabel describes the badge count without credits', () => {
+  assert.equal(badgeButtonLabel({ validBadgeCount: 7, validCredits: 41, username: 'Asha Raman' }), '7 badges, view badges for Asha Raman')
+  assert.equal(badgeButtonLabel({ validBadgeCount: 1, validCredits: 0, username: 'A' }), '1 badge, view badges for A')
   assert.equal(badgeButtonLabel({ validBadgeCount: 3, validCredits: null, username: 'B' }), '3 badges, view badges for B')
   assert.equal(badgeButtonLabel({ username: 'C' }), '0 badges, view badges for C')
 })

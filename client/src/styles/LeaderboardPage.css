@@ -3,31 +3,206 @@
 }
 
 .about-section {
-  margin-top: 3rem;
-  margin-bottom: 3rem;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 42px 48px;
+  margin-top: 2.5rem;
+  margin-bottom: 3.5rem;
+  border: 1px solid rgba(218, 220, 224, 0.7);
+  box-shadow: 0 12px 36px -12px rgba(60, 64, 67, 0.08), 0 1px 3px rgba(60, 64, 67, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.about-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4285F4 0%, #EA4335 25%, #FBBC05 50%, #34A853 75%, #4285F4 100%);
+  z-index: 2;
+}
+
+/* 3D Stage & Card */
+.logo-3d-stage {
+  position: relative;
+  perspective: 1000px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.logo-3d-aura {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(66, 133, 244, 0.22), rgba(234, 67, 53, 0.18) 35%, rgba(251, 188, 5, 0.16) 65%, rgba(52, 168, 83, 0.2) 90%);
+  filter: blur(32px);
+  z-index: 0;
+  opacity: 0.85;
+  animation: auraFloat 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes auraFloat {
+  0% { transform: scale(0.92) translate(-6px, -4px); opacity: 0.75; }
+  50% { transform: scale(1.08) translate(8px, 6px); opacity: 0.95; }
+  100% { transform: scale(0.96) translate(-4px, 8px); opacity: 0.8; }
+}
+
+.logo-3d-card {
+  position: relative;
+  z-index: 1;
+  transform-style: preserve-3d;
+  transform: perspective(1000px) rotateY(-8deg) rotateX(6deg) translateZ(8px);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 24px;
+  box-shadow:
+    0 20px 40px -12px rgba(32, 33, 36, 0.14),
+    0 10px 24px -6px rgba(66, 133, 244, 0.16),
+    0 0 0 1px rgba(218, 220, 224, 0.8),
+    0 0 28px -4px rgba(52, 168, 83, 0.1);
+}
+
+.logo-3d-card:hover {
+  transform: perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(-8px) translateZ(20px) scale(1.02);
+  box-shadow:
+    0 30px 60px -15px rgba(32, 33, 36, 0.2),
+    0 16px 36px -8px rgba(66, 133, 244, 0.26),
+    0 0 0 1px rgba(66, 133, 244, 0.4),
+    0 0 40px 0 rgba(52, 168, 83, 0.2);
+}
+
+.logo-3d-inner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .about-gdg-mit-img {
   margin: 0 auto;
-  max-width: 320px;
+  max-width: 300px;
   width: 100%;
   height: auto;
-  border-radius: var(--radius-md);
+  border-radius: 18px;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.logo-3d-card:hover .about-gdg-mit-img {
+  transform: scale(1.02);
+}
+
+.logo-3d-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.25) 100%);
+  pointer-events: none;
+  border-radius: 18px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.logo-3d-card:hover .logo-3d-shine {
+  opacity: 0.9;
+}
+
+.gdg-3d-fallback {
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+/* About content column */
+.about-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5fd;
+  border: 1px solid #d2e3fc;
+  color: #1a73e8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+  letter-spacing: 0.02em;
+}
+
+.chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4285f4;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.25);
 }
 
 .about-title {
-  font-size: 1.9rem;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.25;
   color: var(--ink);
   margin-bottom: 1rem;
+  letter-spacing: -0.01em;
 }
 
 .about-desc {
   font-size: 1.05rem;
   line-height: 1.85;
-  color: var(--text-muted);
+  color: #495057;
+  margin-bottom: 1rem;
 }
+
+.about-highlights-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.highlight-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8f9fa;
+  border: 1px solid #dadce0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #3c4043;
+  transition: all 0.2s ease;
+}
+
+.highlight-pill:hover {
+  background: #ffffff;
+  border-color: #4285f4;
+  color: #1a73e8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.15);
+}
+
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.pill-dot.blue { background: #4285f4; }
+.pill-dot.green { background: #34a853; }
+.pill-dot.yellow { background: #fbbc05; }
 
 .about-toggle {
   display: none;
@@ -226,6 +401,45 @@
 }
 
 @media (max-width: 767.98px) {
+  .about-section {
+    padding: 32px 24px;
+    border-radius: 20px;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .logo-3d-stage {
+    perspective: none;
+    padding: 4px 0 20px;
+  }
+  .logo-3d-card {
+    transform: none !important;
+    max-width: 240px;
+    margin: 0 auto;
+  }
+  .logo-3d-aura {
+    width: 220px;
+    height: 220px;
+    filter: blur(24px);
+  }
+  .about-gdg-mit-img,
+  .gdg-3d-fallback {
+    max-width: 220px;
+  }
+  .about-badge-chip {
+    margin: 0 auto 12px;
+    display: flex;
+    width: fit-content;
+  }
+  .about-title {
+    font-size: 1.55rem;
+    text-align: center;
+  }
+  .about-desc {
+    text-align: center;
+  }
+  .about-highlights-row {
+    justify-content: center;
+  }
   .leaderboard-wide-container {
     width: 100%;
     padding: 0 var(--space-3);
@@ -234,14 +448,7 @@
     font-size: 1.9rem;
   }
   .about-media {
-    margin-bottom: var(--space-5);
-  }
-  .about-title {
-    font-size: 1.5rem;
-    text-align: center;
-  }
-  .about-desc {
-    text-align: center;
+    margin-bottom: var(--space-4);
   }
 }
 
@@ -254,18 +461,29 @@
 
 @media (max-width: 575.98px) {
   .about-section {
-    margin-top: var(--space-5);
+    padding: 24px 18px;
+    border-radius: 16px;
+    margin-top: var(--space-4);
     margin-bottom: var(--space-4);
   }
-  .about-media {
-    margin-bottom: var(--space-3);
+  .logo-3d-card {
+    max-width: 200px;
   }
-  .about-gdg-mit-img {
-    max-width: 96px;
+  .about-gdg-mit-img,
+  .gdg-3d-fallback {
+    max-width: 190px;
   }
   .about-title {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     margin-bottom: var(--space-2);
+  }
+  .about-badge-chip {
+    font-size: 0.78rem;
+    padding: 4px 10px;
+  }
+  .highlight-pill {
+    font-size: 0.8rem;
+    padding: 4px 10px;
   }
   .about-desc {
     font-size: 0.9375rem;

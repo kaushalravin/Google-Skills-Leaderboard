@@ -59,6 +59,58 @@ function Freshness({ summary, now }) {
   )
 }
 
+function GdgCampusBadgeFallback() {
+  return (
+    <div className="gdg-3d-fallback" aria-label="Google Developer Groups On Campus MIT Badge">
+      <svg viewBox="0 0 320 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+        <rect width="320" height="320" rx="24" fill="#ffffff" />
+        {/* Corner Google Accent Brackets */}
+        <path d="M28 72 V36 H72" stroke="#EA4335" strokeWidth="12" strokeLinecap="round" fill="none" />
+        <path d="M248 36 H292 V80" stroke="#34A853" strokeWidth="12" strokeLinecap="round" fill="none" />
+        <path d="M28 248 V284 H68" stroke="#4285F4" strokeWidth="12" strokeLinecap="round" fill="none" />
+        <path d="M248 284 H292 V244" stroke="#FBBC05" strokeWidth="12" strokeLinecap="round" fill="none" />
+        {/* Central Blueprint Circle */}
+        <circle cx="160" cy="160" r="110" fill="#f8faff" stroke="#e1e8fa" strokeWidth="2" />
+        <circle cx="160" cy="160" r="85" fill="#ffffff" stroke="#e8f0fe" strokeWidth="1.5" />
+        {/* Google Developer Groups Monogram <> */}
+        <path d="M130 128 L104 148 C99 152 99 158 104 162 L130 182" stroke="#EA4335" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d="M104 162 L130 182" stroke="#4285F4" strokeWidth="16" strokeLinecap="round" fill="none" />
+        <path d="M190 128 L216 148 C221 152 221 158 216 162 L190 182" stroke="#34A853" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d="M216 162 L190 182" stroke="#FBBC05" strokeWidth="16" strokeLinecap="round" fill="none" />
+        <text x="160" y="214" textAnchor="middle" fontFamily="Poppins, sans-serif" fontSize="14" fontWeight="700" fill="#202124" letterSpacing="0.5">GDG On Campus</text>
+        <text x="160" y="234" textAnchor="middle" fontFamily="Poppins, sans-serif" fontSize="12" fontWeight="600" fill="#4285F4" letterSpacing="1">MIT</text>
+      </svg>
+    </div>
+  )
+}
+
+function Logo3D() {
+  const [imgFailed, setImgFailed] = useState(false)
+
+  return (
+    <div className="logo-3d-stage">
+      <div className="logo-3d-aura" aria-hidden="true" />
+      <div className="logo-3d-card">
+        <div className="logo-3d-inner">
+          {!imgFailed ? (
+            <img
+              src={GDG_LOGO}
+              alt="GDG on Campus MIT logo"
+              width="320"
+              height="320"
+              className="img-fluid about-gdg-mit-img"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <GdgCampusBadgeFallback />
+          )}
+          <div className="logo-3d-shine" aria-hidden="true" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function LeaderboardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { userId } = useParams()
@@ -230,16 +282,14 @@ export default function LeaderboardPage() {
     <main id="main-content" tabIndex={-1} className="leaderboard-page-wrapper">
       <div className="container about-section">
         <div className="row align-items-center">
-          <div className="col-lg-6 col-md-6 col-sm-12 text-center about-media">
-            <img
-              src={GDG_LOGO}
-              alt="GDG on Campus MIT logo"
-              width="320"
-              height="320"
-              className="img-fluid about-gdg-mit-img"
-            />
+          <div className="col-lg-5 col-md-5 col-sm-12 text-center about-media">
+            <Logo3D />
           </div>
-          <div className="col-lg-6 col-md-6 col-sm-12">
+          <div className="col-lg-7 col-md-7 col-sm-12 about-content-col">
+            <div className="about-badge-chip">
+              <span className="chip-dot" aria-hidden="true" />
+              <span>Google Developer Groups On Campus • MIT</span>
+            </div>
             <h2 className="about-title">About the Google Cloud Study Jam</h2>
             <p id="about-desc" className={`about-desc${aboutOpen ? ' is-open' : ''}`}>
               Google Cloud Learn with Communities, run at MIT as the Google Cloud Study Jam,
@@ -255,6 +305,20 @@ export default function LeaderboardPage() {
             >
               {aboutOpen ? 'Show less' : 'Read more'}
             </button>
+            <div className="about-highlights-row" aria-label="Program highlights">
+              <div className="highlight-pill">
+                <span className="pill-dot blue" aria-hidden="true" />
+                <span>Hands-on Labs</span>
+              </div>
+              <div className="highlight-pill">
+                <span className="pill-dot green" aria-hidden="true" />
+                <span>Verified Badges</span>
+              </div>
+              <div className="highlight-pill">
+                <span className="pill-dot yellow" aria-hidden="true" />
+                <span>Swags & Goodies</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
