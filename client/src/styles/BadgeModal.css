@@ -130,14 +130,15 @@
 .badge-card__media {
   display: flex;
   align-items: center;
-  height: 56px;
+  justify-content: center;
+  height: 76px;
   margin-bottom: var(--space-2);
   color: var(--text-muted);
 }
 
 .badge-card__img {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
 }
 
@@ -158,7 +159,7 @@
   margin: auto 0 0;
   padding-top: var(--space-2);
   border-top: 1px solid var(--hairline);
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }

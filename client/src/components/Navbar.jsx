@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import GDG_LOGO from '../assets/gdg-on-campus-mit.jpeg'
 import AU_LOGO from '../assets/anna-university.png'
-import GOOGLE_CLOUD_LOGO from '../assets/google-cloud.jpg'
+import GOOGLE_CLOUD_LOGO from '../assets/google-cloud.png'
 import GDG from '../assets/gdg.png'
 import ONBOARDING_GUIDE from '../assets/GDG_Learn_with_Communities_Onboarding_Guide.pdf'
 import '../styles/Navbar.css'
@@ -42,8 +42,8 @@ export default function Navbar() {
       <header className="d-flex align-items-center justify-content-between site-header">
         <Link to="/" aria-label="Home">
           <img
-            src={GDG_LOGO}
-            alt="GDG on Campus MIT logo"
+            src={GDG}
+            alt="GDG logo"
             className="header-logo d-none d-md-block"
             width="105"
             height="105"
@@ -62,7 +62,10 @@ export default function Navbar() {
           <span className="header-title__red">Developer</span>{' '}
           <span className="header-title__yellow">Groups</span>{' '}
           <span className="header-title__green">on Campus</span> <br />
-          <span className="header-title__blue">Madras Institute of Technology</span>
+          <span className="header-title__blue">Madras</span>{' '}
+          <span className="header-title__red">Institute</span>{' '}
+          <span className="header-title__yellow">of</span>{' '}
+          <span className="header-title__green">Technology</span>
         </p>
 
         <p className="text-center m-0 d-none d-md-block header-title">
@@ -70,10 +73,13 @@ export default function Navbar() {
           <span className="header-title__red">Developer</span>{' '}
           <span className="header-title__yellow">Groups</span>{' '}
           <span className="header-title__green">on Campus</span> <br />
-          <span className="header-title__blue">Madras Institute of Technology</span>
+          <span className="header-title__blue">Madras</span>{' '}
+          <span className="header-title__red">Institute</span>{' '}
+          <span className="header-title__yellow">of</span>{' '}
+          <span className="header-title__green">Technology</span>
         </p>
 
-        <img src={AU_LOGO} alt="Anna University logo" className="header-logo d-none d-md-block" width="105" height="104" />
+        <img src={GOOGLE_CLOUD_LOGO} alt="Google Cloud logo" className="header-logo d-none d-md-block" width="105" height="104" />
 
         <img
           src={GOOGLE_CLOUD_LOGO}
