@@ -4,6 +4,8 @@ import { formatTimeIST } from '../lib/leaderboard.js'
 import '../styles/Footer.css'
 
 const CURRENT_YEAR = new Date().getFullYear()
+const KAUSHAL_LINKEDIN = 'https://www.linkedin.com/in/kaushal-n-904519326/'
+const SHARUKESH_LINKEDIN = 'https://www.linkedin.com/in/sharukeshalagiri/'
 
 function describeHealth(health) {
   if (health?.status === 'ok') {
@@ -42,7 +44,28 @@ export default function Footer() {
         <p className="footer__copy">
           © {CURRENT_YEAR} GDG on Campus MIT · Google Cloud Learn with Communities
           <br />
-          Built by Kaushal N and Sharukesh Alagiri
+          <span className="footer__credits">
+            Built by{' '}
+            <a
+              href={KAUSHAL_LINKEDIN}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer__credit-link"
+            >
+              Kaushal N
+              <span className="visually-hidden"> (opens in a new tab)</span>
+            </a>{' '}
+            and{' '}
+            <a
+              href={SHARUKESH_LINKEDIN}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer__credit-link"
+            >
+              Sharukesh Alagiri
+              <span className="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          </span>
         </p>
         {health && (
           <p className={`footer__status footer__status--${health.tone}`}>

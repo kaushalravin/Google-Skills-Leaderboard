@@ -24,6 +24,24 @@
   margin: 0;
 }
 
+.footer__credits {
+  display: block;
+  margin-top: var(--space-2);
+}
+
+.footer__credit-link {
+  color: var(--link-text);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footer__credit-link:hover,
+.footer__credit-link:focus-visible {
+  color: var(--link-text);
+  text-decoration: underline;
+}
+
 .footer__status {
   display: inline-flex;
   align-items: center;
