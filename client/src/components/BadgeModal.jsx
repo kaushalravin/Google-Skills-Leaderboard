@@ -1,176 +1,250 @@
-/**
- * BadgeModal.jsx
- *
- * Accessible popup modal displaying all badges earned by a participant.
- * Fetches detailed badges from /api/leaderboard/:userId if not present on row.
- */
-
 import { useState, useEffect, useRef } from 'react'
+import { swagTier, plural, badgeSummary, formatShortDate, missingBadges, GOLD_BADGES, SILVER_BADGES } from '../lib/leaderboard.js'
+import { ACCEPTED_BADGES } from '../content/acceptedBadges.js'
+import { usePinned, pin, unpin } from '../hooks/usePinned.js'
+import BadgeTrack from './BadgeTrack.jsx'
+import { isCoarsePointer } from '../lib/motion.js'
 import '../styles/BadgeModal.css'
 
-const SILVER_THRESHOLD = 5
-const GOLD_THRESHOLD   = 10
+const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+const STATUS_MS = 2000
 
-function EligibilityTag({ count }) {
-  if (count >= GOLD_THRESHOLD) {
-    return <span className="swag-tag-gold">🏅 Gold Swags Eligible ({count} badges)</span>
+function Eligibility({ count }) {
+  const tier = swagTier(count)
+  if (tier === 'gold') {
+    return <span className="swag-tag-gold">Gold swag eligible</span>
   }
-  if (count >= SILVER_THRESHOLD) {
-    return <span className="swag-tag-silver">🥈 Silver Swags Eligible ({count} badges)</span>
+  if (tier === 'silver') {
+    return (
+      <>
+        <span className="swag-tag-silver">Silver swag eligible</span>
+        <span className="modal__elig-note">
+          {plural(GOLD_BADGES - count, 'more badge')} needed for Gold swag.
+        </span>
+      </>
+    )
   }
-  return null
+  return (
+    <span className="modal__elig-note">
+      {plural(SILVER_BADGES - count, 'more badge')} needed for Silver swag.
+    </span>
+  )
 }
 
-function BadgeFallback({ name }) {
+function BadgeOutline() {
   return (
-    <div className="badge-fallback" aria-label={`Badge: ${name}`} title={name}>
-      🎖️
-    </div>
+    <svg className="badge-card__fallback" viewBox="0 0 48 48" width="44" height="44" aria-hidden="true" focusable="false">
+      <circle cx="24" cy="19" r="13" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="24" cy="19" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M16 29 L12 44 L19 40 L24 45 L24 32 M32 29 L36 44 L29 40 L24 45" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
   )
 }
 
 function BadgeItem({ badge }) {
-  const earned = badge.earnedAt
-    ? new Date(badge.earnedAt).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      })
-    : null
+  const [imgFailed, setImgFailed] = useState(false)
+  const earned = formatShortDate(badge.earnedAt)
 
   return (
     <div className="badge-card">
-      {badge.imageUrl ? (
-        <img
-          src={badge.imageUrl}
-          alt={badge.name ?? 'Badge'}
-          className="badge-card__img"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none'
-            if (e.currentTarget.nextSibling) {
-              e.currentTarget.nextSibling.removeAttribute('hidden')
-            }
-          }}
-        />
-      ) : null}
-      {!badge.imageUrl && <BadgeFallback name={badge.name ?? 'Badge'} />}
-      <div hidden><BadgeFallback name={badge.name ?? 'Badge'} /></div>
-      <p className="badge-card__name">{badge.name ?? 'Unnamed badge'}</p>
+      <div className="badge-card__media">
+        {badge.imageUrl && !imgFailed ? (
+          <img
+            src={badge.imageUrl}
+            alt=""
+            className="badge-card__img"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <BadgeOutline />
+        )}
+      </div>
+      <p className="badge-card__name" title={badge.name}>{badge.name}</p>
       {earned && <p className="badge-card__date">{earned}</p>}
     </div>
   )
 }
 
-export default function BadgeModal({ participant, onClose }) {
-  const closeRef = useRef(null)
-  const [badges, setBadges] = useState(participant.badges ?? [])
-  const [loading, setLoading] = useState(
-    (!participant.badges || participant.badges.length === 0) && Boolean(participant.userId)
+function NotEarned({ badges }) {
+  if (badges.length === 0) return null
+  return (
+    <section className="modal__missing" aria-labelledby="badge-modal-missing">
+      <h3 className="modal__section-title" id="badge-modal-missing">Not earned yet</h3>
+      <ul className="missing-list">
+        {badges.map((badge) => (
+          <li key={badge.title} className="missing-list__item">
+            <a className="missing-list__link" href={badge.url} target="_blank" rel="noopener noreferrer">
+              {badge.title}
+              <span className="visually-hidden"> (opens in a new tab)</span>
+            </a>
+            <span className="missing-list__credits">{plural(badge.credits, 'credit')}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
+}
+
+function CopyLinkButton({ participant }) {
+  const [status, setStatus] = useState(null)
+  const timerRef = useRef(null)
+
+  useEffect(() => () => clearTimeout(timerRef.current), [])
+
+  function show(message) {
+    clearTimeout(timerRef.current)
+    setStatus(message)
+    timerRef.current = setTimeout(() => setStatus(null), STATUS_MS)
+  }
+
+  async function handleClick() {
+    const url = `${window.location.origin}/p/${encodeURIComponent(participant.userId)}`
+    if (navigator.share && isCoarsePointer()) {
+      try {
+        await navigator.share({ title: `${participant.username} on the leaderboard`, url })
+        return
+      } catch (err) {
+        if (err?.name === 'AbortError') return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      show('Link copied')
+    } catch {
+      show('Copy failed')
+    }
+  }
+
+  return (
+    <button type="button" className="modal__action" onClick={handleClick}>
+      <span aria-live="polite">{status ?? 'Copy link'}</span>
+    </button>
+  )
+}
+
+function lockPageScroll() {
+  const { body } = document
+  const scrollY = window.scrollY
+  const previous = {
+    position: body.style.position,
+    top: body.style.top,
+    left: body.style.left,
+    right: body.style.right,
+    overflow: body.style.overflow,
+  }
+  // position: fixed is the only lock iOS Safari honours; the saved offset keeps the page where it was
+  Object.assign(body.style, { position: 'fixed', top: `-${scrollY}px`, left: '0', right: '0', overflow: 'hidden' })
+  return () => {
+    Object.assign(body.style, previous)
+    window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' })
+  }
+}
+
+export default function BadgeModal({ participant, onClose }) {
+  const dialogRef = useRef(null)
+  const closeRef = useRef(null)
+  const pinnedId = usePinned()
+  const { badges, validBadgeCount: count } = participant
+  const missing = missingBadges(badges, ACCEPTED_BADGES)
+  const isPinned = pinnedId != null && pinnedId === String(participant.userId)
 
   useEffect(() => {
-    closeRef.current?.focus()
+    const opener = document.activeElement
+    const unlock = lockPageScroll()
+    closeRef.current?.focus({ preventScroll: true })
+    return () => {
+      unlock()
+      opener?.focus?.({ preventScroll: true })
+    }
   }, [])
 
   useEffect(() => {
     function handler(e) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return
+      const items = [...dialogRef.current.querySelectorAll(FOCUSABLE)]
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      const inside = dialogRef.current.contains(document.activeElement)
+      if (!inside || (e.shiftKey && document.activeElement === first)) {
+        e.preventDefault()
+        ;(e.shiftKey ? last : first).focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [])
-
-  useEffect(() => {
-    if (participant.badges && participant.badges.length > 0) {
-      setBadges(participant.badges)
-      setLoading(false)
-      return
-    }
-
-    if (participant.userId) {
-      setLoading(true)
-      fetch(`/api/leaderboard/${participant.userId}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data && Array.isArray(data.badges)) {
-            setBadges(data.badges)
-          }
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false))
-    }
-  }, [participant])
-
-  const count = participant.validBadgeCount ?? badges.length ?? 0
-
   return (
     <div
       className="modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Badges earned by ${participant.username}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="modal">
+      <div ref={dialogRef} className="modal" role="dialog" aria-modal="true" aria-labelledby="badge-modal-title">
         <div className="modal__header">
           <div>
-            <h2 className="modal__title" id="modal-title">
+            <h2 className="modal__title" id="badge-modal-title">
               {participant.username}
             </h2>
-            <p className="modal__subtitle">
-              {count} valid badge{count !== 1 ? 's' : ''} earned
-            </p>
+            <div className="modal__track">
+              <BadgeTrack count={count} size="md" />
+            </div>
+            <p className="modal__subtitle">{badgeSummary(participant)}</p>
           </div>
           <button
             ref={closeRef}
             type="button"
             className="modal__close"
             onClick={onClose}
-            aria-label="Close badges popup"
+            aria-label="Close"
           >
-            ✕
+            ×
           </button>
         </div>
 
-        <div className="modal__body">
-          <div className="modal__eligibility" aria-live="polite">
-            <EligibilityTag count={count} />
-            {count < SILVER_THRESHOLD && (
-              <span className="modal__elig-note">
-                {SILVER_THRESHOLD - count} more badge{SILVER_THRESHOLD - count !== 1 ? 's' : ''} needed for Silver swag eligibility.
-              </span>
-            )}
+        <div
+          className="modal__body"
+          tabIndex={0}
+          role="region"
+          aria-label="Badge details"
+        >
+          <div className="modal__eligibility">
+            <Eligibility count={count} />
           </div>
 
-          {loading ? (
-            <div className="modal-empty">
-              <span className="modal-empty-icon">⏳</span>
-              <p className="modal-empty-title">Loading badges...</p>
-            </div>
-          ) : badges.length === 0 ? (
-            <div className="modal-empty">
-              <span className="modal-empty-icon">🎖️</span>
-              <p className="modal-empty-title">No badge details found</p>
-              <p className="modal-empty-desc">
-                Completed badges will be synchronized during the scheduled crawl cycle.
-              </p>
-            </div>
+          {badges.length === 0 ? (
+            <p className="modal-empty">No accepted badges yet.</p>
           ) : (
-            <div className="badges-grid" aria-label="Earned badges">
-              {badges.map((badge, i) => (
-                <BadgeItem key={badge.name ?? i} badge={badge} />
+            <ul className="badges-grid">
+              {badges.map((badge) => (
+                <li key={badge.name}>
+                  <BadgeItem badge={badge} />
+                </li>
               ))}
-            </div>
+            </ul>
           )}
+
+          <NotEarned badges={missing} />
+        </div>
+
+        <div className="modal__footer">
+          <button
+            type="button"
+            className={`modal__action${isPinned ? ' is-pinned' : ''}`}
+            onClick={() => (isPinned ? unpin() : pin(participant.userId))}
+          >
+            {isPinned ? 'Not me' : 'This is me'}
+          </button>
+          <CopyLinkButton participant={participant} />
         </div>
       </div>
     </div>

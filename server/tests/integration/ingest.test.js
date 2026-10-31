@@ -11,7 +11,7 @@ const { User } = require("../../models/users");
 const { Badge } = require("../../models/badges");
 const { UserBadge } = require("../../models/userBadges");
 const { Leaderboard } = require("../../models/leaderboard");
-const { rebuildLeaderboard, getSnapshot } = require("../../services/leaderboard");
+const { rebuild, getSnapshot } = require("../helpers/leaderboard");
 
 const CANONICAL = "https://www.skills.google/public_profiles/aB12-cd34";
 
@@ -243,7 +243,7 @@ test("re-submission updates username/emails but never badgeCount or credits", as
 
 test("the snapshot is rebuilt with lastSuccessfulUpdate preserved; the new participant has 0 badges", async () => {
     const lastRun = new Date("2026-10-28T06:00:00.000Z");
-    await rebuildLeaderboard({ lastSuccessfulUpdate: lastRun });
+    await rebuild({ lastSuccessfulUpdate: lastRun });
     const before = await getSnapshot();
     assert.deepEqual(before.rows, []);
 

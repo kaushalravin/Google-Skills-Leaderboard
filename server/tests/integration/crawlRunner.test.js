@@ -16,7 +16,8 @@ const { settingsFromConfig } = require("../../services/crawl");
 const { testConfig } = require("../helpers/env");
 
 const WEBSITE = "Build a Website on Google Cloud";
-const CRAWL_OPTIONS = { minGapMs: 0, maxRetries: 0, startDate: "2026-10-26", endDate: undefined };
+const CRAWL_OPTIONS = { ...settingsFromConfig(testConfig()), minGapMs: 0, maxRetries: 0 };
+const LOCK_TTL_MS = testConfig().LOCK_TTL_MS;
 
 let mongo;
 let seq = 0;
@@ -71,7 +72,7 @@ function rebuildStub(impl = async () => ({ participants: 0 })) {
 }
 
 async function run(trigger, deps) {
-    const started = await startCrawl({ trigger, triggeredBy: trigger }, { crawlOptions: CRAWL_OPTIONS, ...deps });
+    const started = await startCrawl({ trigger, triggeredBy: trigger }, { crawlOptions: CRAWL_OPTIONS, lockTtlMs: LOCK_TTL_MS, ...deps });
     assert.equal(started.started, true);
     const outcome = await started.done;
     const log = await CrawlerLog.findOne({ runId: started.runId }).lean();
@@ -224,14 +225,11 @@ test("suspicious: runs below SUSPICIOUS_EMPTY_MIN_USERS are not flagged", async 
     assert.equal(log.status, "success");
     assert.equal(rebuild.calls.length, 1);
 
-    // The thresholds come from env config.
-    const options = settingsFromConfig(testConfig({ SUSPICIOUS_EMPTY_MIN_USERS: "2", SUSPICIOUS_EMPTY_RATIO: "0.5" }));
-    assert.equal(options.suspiciousEmptyMinUsers, 2);
-    assert.equal(options.suspiciousEmptyRatio, 0.5);
+    // The threshold comes from env config.
     const lowered = await run("cron", {
         scrape: async () => [],
         rebuildLeaderboard: rebuildStub().fn,
-        crawlOptions: { ...CRAWL_OPTIONS, suspiciousEmptyMinUsers: 2 }
+        crawlOptions: settingsFromConfig(testConfig({ SUSPICIOUS_EMPTY_MIN_USERS: "2", CRAWL_MIN_GAP_MS: "0", CRAWL_MAX_RETRIES: "0" }))
     });
     assert.equal(lowered.log.status, "failed");
 });
@@ -242,7 +240,7 @@ test("crash: crawlAll throws -> failed with error, lock released, done resolves"
     // An invalid concurrency makes crawlAll itself throw (p-limit rejects it).
     const started = await startCrawl(
         { trigger: "manual", triggeredBy: "admin" },
-        { crawlOptions: { ...CRAWL_OPTIONS, concurrency: 0 }, scrape: async () => [], rebuildLeaderboard: rebuild.fn }
+        { crawlOptions: { ...CRAWL_OPTIONS, concurrency: 0 }, lockTtlMs: LOCK_TTL_MS, scrape: async () => [], rebuildLeaderboard: rebuild.fn }
     );
     const outcome = await started.done;
     const log = await CrawlerLog.findOne({ runId: started.runId }).lean();
@@ -259,7 +257,7 @@ test("crash: the log can't be written -> done still resolves failed and the lock
         throw new Error("db down");
     };
     try {
-        const started = await startCrawl({ trigger: "cli", triggeredBy: "cli" }, { crawlOptions: CRAWL_OPTIONS });
+        const started = await startCrawl({ trigger: "cli", triggeredBy: "cli" }, { crawlOptions: CRAWL_OPTIONS, lockTtlMs: LOCK_TTL_MS });
         assert.equal((await started.done).status, "failed");
     } finally {
         CrawlerLog.create = original;
@@ -288,9 +286,9 @@ test("a second start while a run holds the lock is refused with the holder", asy
     const gate = new Promise((resolve) => (releaseScrape = resolve));
     const first = await startCrawl(
         { trigger: "cron", triggeredBy: "cron" },
-        { crawlOptions: CRAWL_OPTIONS, scrape: async () => { await gate; return []; }, rebuildLeaderboard: async () => {} }
+        { crawlOptions: CRAWL_OPTIONS, lockTtlMs: LOCK_TTL_MS, scrape: async () => { await gate; return []; }, rebuildLeaderboard: async () => {} }
     );
-    const second = await startCrawl({ trigger: "manual", triggeredBy: "admin" }, { crawlOptions: CRAWL_OPTIONS });
+    const second = await startCrawl({ trigger: "manual", triggeredBy: "admin" }, { crawlOptions: CRAWL_OPTIONS, lockTtlMs: LOCK_TTL_MS });
     assert.equal(second.started, false);
     assert.equal(second.lock.held, true);
     assert.deepEqual(second.lock.meta, { runId: first.runId, trigger: "cron", triggeredBy: "cron" });

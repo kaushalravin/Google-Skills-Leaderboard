@@ -11,6 +11,7 @@ const {
     participant,
     assertPublicResponsesClean,
     assertNoInternals,
+    assertErrorShape,
     ADMIN_KEY
 } = require("./helpers/harness");
 
@@ -22,18 +23,7 @@ after(async () => {
     await h?.stop();
 });
 
-function assertErrorShape(res, status, code) {
-    assert.equal(res.status, status, res.text);
-    assert.deepEqual(Object.keys(res.body).sort(), ["error"]);
-    const keys = Object.keys(res.body.error).filter((k) => k !== "details");
-    assert.deepEqual(keys.sort(), ["code", "message", "requestId"]);
-    assert.equal(res.body.error.code, code);
-    assert.equal(typeof res.body.error.message, "string");
-    assert.equal(res.body.error.requestId, res.headers.get("x-request-id"));
-    assertNoInternals(res.text, `${status} ${code}`);
-}
-
-test("21: malformed JSON → 400, oversized body → 413, unknown route → 404, all in the standard error shape", async () => {
+test("malformed JSON → 400, oversized body → 413, unknown route → 404, all in the standard error shape", async () => {
     const s = await h.newServer();
     assertErrorShape(await s.post("/api/admin/participants", { rawBody: '{"username": "x",', admin: true }), 400, "INVALID_JSON");
     assertErrorShape(await s.post("/api/leaderboard", { rawBody: "{not json" }), 400, "INVALID_JSON");
@@ -48,7 +38,7 @@ test("21: malformed JSON → 400, oversized body → 413, unknown route → 404,
     assertErrorShape(await s.request("DELETE", "/api/leaderboard"), 404, "NOT_FOUND");
 });
 
-test("22: error responses never expose stack traces, paths, Mongo errors or internal messages", async () => {
+test("error responses never expose stack traces, paths, Mongo errors or internal messages", async () => {
     const s = await h.newServer();
     s.setProfiles({});
     await s.ingest(participant("first", "First"));
@@ -82,7 +72,7 @@ async function freePort() {
     });
 }
 
-test("23: with MongoDB stopped, health is 503 'down' and /live stays 200; requests fail opaquely; health recovers after restore", async () => {
+test("with MongoDB stopped, health is 503 'down' and /live stays 200; requests fail opaquely; health recovers after restore", async () => {
     const port = await freePort();
     const replSet = await MongoMemoryReplSet.create({ replSet: { count: 1 }, instanceOpts: [{ port }] });
     const server = await spawnServer({
@@ -143,7 +133,7 @@ test("23: with MongoDB stopped, health is 503 'down' and /live stays 200; reques
     }
 });
 
-test("24: health is 'degraded' before any successful crawl and 'ok' after one, with lastSuccessfulUpdate", async () => {
+test("health is 'degraded' before any successful crawl and 'ok' after one, with lastSuccessfulUpdate", async () => {
     const s = await h.newServer();
     s.setProfiles({ one: { badges: [badge("Build a Website on Google Cloud", "Oct 27, 2026")] } });
     await s.ingest(participant("one", "One"));
@@ -163,6 +153,6 @@ test("24: health is 'degraded' before any successful crawl and 'ok' after one, w
     assert.equal(afterCrawl.body.db.ok, true);
 });
 
-test("31 (this file): no public response contained an email, '@' or internal details", () => {
+test("no public response in this file contained an email, '@' or internal details", () => {
     assertPublicResponsesClean();
 });

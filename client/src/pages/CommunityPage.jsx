@@ -1,67 +1,68 @@
-/**
- * CommunityPage.jsx — GDG MIT community landing page.
- */
-
+import { Link } from 'react-router-dom'
+import { GOLD_BADGES, SILVER_BADGES, UPDATE_INTERVAL_HOURS } from '../lib/leaderboard.js'
+import { ACCEPTED_BADGES } from '../content/acceptedBadges.js'
 import '../styles/CommunityPage.css'
 
 export default function CommunityPage() {
   return (
-    <main id="main-content" aria-label="Community">
+    <main id="main-content" tabIndex={-1}>
       <div className="community-page">
-        {/* Header */}
         <header className="community-header">
-          <p className="community-header__eyebrow">GDG MIT</p>
-          <h1 className="community-header__title">
-            Google Developer Group<br />MIT Campus
-          </h1>
+          <p className="community-header__eyebrow">Community</p>
+          <h1 className="community-header__title">GDG on Campus MIT</h1>
           <p className="community-header__desc">
-            A community of students passionate about learning Google technologies,
-            collaborating on projects, and growing together through study jams,
-            workshops, and coding events.
+            Students at MIT learning Google technologies together through study jams,
+            workshops and coding events.
           </p>
         </header>
 
-        {/* Info cards */}
         <div className="community-grid">
           <article className="community-card">
-            <div className="community-card__accent" style={{ background: '#4285F4' }} />
-            <h2 className="community-card__title">About the Campaign</h2>
+            <div className="community-card__accent community-card__accent--blue" />
+            <h2 className="community-card__title">About the campaign</h2>
             <p className="community-card__desc">
-              The <strong>Google Cloud Learn with Communities</strong> (Google Cloud Study Jam)
-              program lets students earn Google Cloud skill badges through hands-on labs.
-              MIT students who earn 5 eligible badges qualify for Silver swag;
-              10 badges qualifies for Gold.
+              The <strong>Google Cloud Study Jam</strong> lets students earn Google Cloud
+              badges through hands-on labs on Google Skills. Earn {SILVER_BADGES} accepted
+              badges for Silver swag, or all {GOLD_BADGES} for Gold.
             </p>
           </article>
 
           <article className="community-card">
-            <div className="community-card__accent" style={{ background: '#34A853' }} />
-            <h2 className="community-card__title">How to Participate</h2>
+            <div className="community-card__accent community-card__accent--green" />
+            <h2 className="community-card__title">How to participate</h2>
             <p className="community-card__desc">
-              Register through the Google Form shared by GDG MIT.
-              Your public Google Skills profile will be crawled automatically every
-              6 hours and your badge count will be reflected on this leaderboard.
+              Register through the Google Form shared by GDG on Campus MIT. Keep your Google
+              Skills profile public: new badges show on the leaderboard after the next update
+              (every {UPDATE_INTERVAL_HOURS} hours).
             </p>
           </article>
 
           <article className="community-card">
-            <div className="community-card__accent" style={{ background: '#FBBC05' }} />
-            <h2 className="community-card__title">Earn Your Badges</h2>
+            <div className="community-card__accent community-card__accent--yellow" />
+            <h2 className="community-card__title">Earn badges</h2>
             <p className="community-card__desc">
-              Complete eligible Google Cloud skill badge labs on
-              Google Cloud Skills Boost. Only the specific badges defined by the
-              campaign count towards your eligibility — check the Syllabus
-              (available in Resources) for the complete badge list.
+              Complete the labs for the accepted badges on Google Skills. Only
+              the {ACCEPTED_BADGES.length} accepted badges count; see
+              {' '}<Link to="/#leaderboard">How scoring works</Link> on the leaderboard
+              for the list.
             </p>
           </article>
 
           <article className="community-card">
-            <div className="community-card__accent" style={{ background: '#EA4335' }} />
-            <h2 className="community-card__title">Stay Connected</h2>
+            <div className="community-card__accent community-card__accent--red" />
+            <h2 className="community-card__title">Stay connected</h2>
             <p className="community-card__desc">
-              Join GDG MIT channels to stay updated on events, deadlines, and
-              resources. Community links will be listed here once confirmed.
-              See the Resources menu for study materials.
+              Follow{' '}
+              <a
+                href="https://gdg.community.dev/gdg-on-campus-madras-institute-of-technology-chennai-india/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GDG on Campus MIT on the GDG community site
+                <span className="visually-hidden"> (opens in a new tab)</span>
+              </a>
+              {' '}for events, deadlines and resources. See the Resources menu
+              for study materials.
             </p>
           </article>
         </div>

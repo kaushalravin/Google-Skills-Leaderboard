@@ -77,10 +77,7 @@ async function tryAcquire(name, { ttlMs, meta = null }) {
     heartbeat.unref();
 
     return {
-        name,
-        owner,
         meta,
-        acquiredAt: doc.acquiredAt,
         expiresAt: doc.expiresAt,
         signal: controller.signal,
         /** Idempotent; only clears the lock if we still own it. */

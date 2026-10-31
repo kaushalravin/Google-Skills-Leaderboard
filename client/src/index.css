@@ -1,8 +1,3 @@
-/* =============================================
-   index.css — Root stylesheet entry point.
-   Imports all component-level stylesheets.
-   ============================================= */
-
 @import './styles/variables.css';
 @import './styles/global.css';
 @import './styles/Navbar.css';
@@ -11,3 +6,8 @@
 @import './styles/BadgeModal.css';
 @import './styles/Footer.css';
 @import './styles/CommunityPage.css';
+@import './styles/Podium.css';
+@import './styles/ScoringInfo.css';
+@import './styles/BadgeTrack.css';
+@import './styles/MeBar.css';
+@import './styles/ActivityChart.css';

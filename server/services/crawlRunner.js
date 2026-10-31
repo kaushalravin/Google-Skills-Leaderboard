@@ -7,7 +7,6 @@ const { CrawlerLog } = require("../models/crawlerLog");
 const { createLogger } = require("../config/logger");
 
 const LOCK_NAME = "crawl";
-const DEFAULT_LOCK_TTL_MS = 120000;
 const EMPTY_COUNTS = { total: 0, succeeded: 0, failed: 0, empty: 0, badgesUpserted: 0, badgesSkippedNoDate: 0 };
 
 const SUSPICIOUS_EMPTY = "suspicious_empty_run";
@@ -92,7 +91,7 @@ async function runCrawl({ runId, trigger, triggeredBy, lease, deps }) {
         await CrawlerLog.updateOne(
             { runId, status: "running" },
             { $set: { status, finishedAt: new Date(), error: errorText(err) } }
-        ).catch(() => {});
+        ).catch((logErr) => logger.error({ err: logErr, runId }, "crawl log update failed"));
     } finally {
         await lease.release().catch((err) => logger.error({ err, runId }, "lock release failed"));
     }
@@ -109,7 +108,7 @@ async function startCrawl({ trigger, triggeredBy }, deps = {}) {
     const fullDeps = { ...deps, logger: deps.logger ?? createLogger({ level: "silent" }) };
     const runId = randomUUID();
     const lease = await tryAcquire(LOCK_NAME, {
-        ttlMs: deps.lockTtlMs ?? DEFAULT_LOCK_TTL_MS,
+        ttlMs: deps.lockTtlMs,
         meta: { runId, trigger, triggeredBy }
     });
     if (!lease) return { started: false, lock: await getLockState(LOCK_NAME) };

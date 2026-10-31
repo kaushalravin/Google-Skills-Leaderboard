@@ -2,6 +2,7 @@ const { z } = require("zod");
 
 const { User } = require("../models/users");
 const { rebuildLeaderboard } = require("./leaderboard");
+const { escapeRegex } = require("../middleware/validation");
 
 const PROFILE_HOSTS = new Set([
     "skills.google",
@@ -40,8 +41,6 @@ const rowSchema = z.object({
     skillsEmail: email,
     profileUrl: z.string().max(2048)
 });
-
-const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
  * Inserts or updates one participant by profile id (case-insensitive).
@@ -120,11 +119,11 @@ function ingestParticipants(rows, { startDate, endDate, logger }) {
                 await rebuildLeaderboard({ startDate, endDate });
             } catch (err) {
                 // The ingested rows are already stored; the next crawl rebuilds the snapshot.
-                logger?.error({ err }, "leaderboard rebuild after ingestion failed");
+                logger.error({ err }, "leaderboard rebuild after ingestion failed");
             }
         }
 
-        logger?.info(
+        logger.info(
             {
                 received: result.received,
                 inserted: result.inserted,

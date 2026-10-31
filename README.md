@@ -1,8 +1,9 @@
-# Google-Skills-Leaderboard
+# GDG on Campus MIT Google Skills leaderboard
 
-Backend for the GDG MIT Google Skills competition leaderboard. Participants register through a Google Form. Every 6 hours the server reads each participant's public Google Skills profile, stores the competition badges they have earned, and rebuilds a ranked leaderboard. The leaderboard is served over a small REST API, together with admin endpoints for ingestion and manual crawls.
+The leaderboard for the Google Cloud Study Jam at GDG on Campus MIT. Participants register through a Google Form. Every 6 hours the server reads each participant's public Google Skills profile, stores the competition badges they have earned, and rebuilds a ranked leaderboard. A public site shows the board; admin endpoints handle registration and manual crawls.
 
-The server lives in `server/` (Node.js, Express, MongoDB).
+- `server/`: the backend (Node.js, Express, MongoDB).
+- `client/`: the public site (React, Vite, Bootstrap CSS).
 
 ## Architecture
 
@@ -15,8 +16,9 @@ flowchart LR
     runner --> scraper["scrapeProfile (scraper/webScraper.js)"]
     scraper --> profiles["Google Skills public profiles"]
     runner --> rebuild["rebuildLeaderboard"]
-    lb["GET /api/leaderboard"] --> dashboard["Dashboard"]
-    health["GET /api/health"]
+    site["Public site (client/)"] --> lb["GET /api/leaderboard"]
+    site --> one["GET /api/leaderboard/:userId"]
+    site --> health["GET /api/health"]
 
     subgraph mongo["MongoDB"]
         users[("users")]
@@ -32,6 +34,7 @@ flowchart LR
     runner --> logs
     rebuild --> snapshot
     snapshot --> lb
+    snapshot --> one
     health -->|"ping, lastSuccessfulUpdate"| logs
 ```
 
@@ -66,7 +69,7 @@ sequenceDiagram
 Guarantees:
 - A failed, empty or interrupted scrape writes nothing for that user. Nothing in the crawl path ever deletes users, badges or userbadges.
 - Only one crawl runs at a time. Cron, `POST /api/admin/crawl` and `npm run crawl:once` all go through the same MongoDB lock, which a heartbeat keeps alive and the database clock expires.
-- A run where (almost) every scrape comes back empty is marked `failed` (`suspicious_empty_run`). That pattern is what a block, CAPTCHA or markup change looks like.
+- A run of at least `SUSPICIOUS_EMPTY_MIN_USERS` participants where every returned scrape is empty, or where at least `SUSPICIOUS_EMPTY_RATIO` of the participants who had valid badges come back empty, is marked `failed` (`suspicious_empty_run`). That pattern is what a block, CAPTCHA or markup change looks like.
 - The public API reads a precomputed snapshot. A failed run leaves the last good leaderboard and its `lastSuccessfulUpdate` in place.
 - `npm run check:real` and `crawl:once --dry-run` are read-only: no writes, no lock, no collections created.
 - Public responses never include emails. Admin routes need the API key and are rate limited before the key is checked.
@@ -77,7 +80,7 @@ Requires Node.js 22 or newer, and MongoDB 4.2 or newer (Atlas or self-hosted).
 
 ```bash
 cd server
-npm install
+npm ci
 cp .env.example .env    # set MONGO_URI and ADMIN_API_KEY
 npm test                # in-memory MongoDB, no network access
 npm start               # runs index.js; `npm run dev` restarts on changes
@@ -92,6 +95,46 @@ Other commands (from `server/`):
 | `npm run crawl:once` | One crawl through the lock. Exits 2 if another crawl is running. |
 | `npm run crawl:once -- --dry-run` | Scrape and report without writing anything. |
 | `npm run check:real` | Read-only check against a real database (see below). |
+
+## Frontend
+
+The public site in `client/` calls only the public endpoints: `/api/leaderboard`, `/api/leaderboard/:userId` and `/api/health`. It needs Node.js 22 or newer.
+
+```bash
+cd client
+npm ci
+npm run dev
+```
+
+To run both locally, start the backend from `server/` (port 3000 by default), then `npm run dev` in `client/` and open http://localhost:5173. Vite proxies `/api` to http://localhost:3000.
+
+| Variable (`client/.env`) | Used by | Notes |
+|---|---|---|
+| `VITE_PROXY_TARGET` | `npm run dev` | Where the dev proxy sends `/api`; default `http://localhost:3000`. |
+| `VITE_API_BASE_URL` | production build | The API's origin. Leave empty when the site and the API share an origin. |
+| `VITE_SITE_URL` | production build | Required. The site's public origin, no trailing slash; used for the link-preview image URLs. The build warns when it is missing. |
+| `VITE_BUILD_ID` | production build | Optional. Names the service worker's cache (e.g. the commit SHA); defaults to the bundle's hashed URL. |
+
+For production:
+
+```bash
+VITE_API_BASE_URL=https://api.example.com \
+VITE_SITE_URL=https://leaderboard.example.com \
+VITE_BUILD_ID=$(git rev-parse --short HEAD) \
+npm run build
+```
+
+Serve `client/dist` as static files, falling back to `index.html` for unknown paths so `/p/<userId>` and `/community` load on refresh. Set the backend's `CORS_ORIGINS` to the site's origin.
+
+| Command (from `client/`) | Purpose |
+|---|---|
+| `npm run dev` | Dev server on port 5173 with the `/api` proxy. |
+| `npm run build` | Production build into `client/dist`. |
+| `npm run preview` | Serves the production build locally (with the same proxy); the service worker only runs in a production build. |
+| `npm run lint` | oxlint. |
+| `npm test` | Unit tests for the shared rules in `src/lib/` (Node's built-in test runner). |
+
+The accepted-badge list under "How scoring works" lives in `client/src/content/acceptedBadges.js` and must match `server/data/Accepted Badges.csv`.
 
 ## Testing
 
@@ -142,7 +185,7 @@ Every variable is validated at startup, and an invalid value stops the process. 
 ## Scoring
 
 A badge counts when all of these hold:
-- It is one of the 10 skill badges in `server/data/Accepted Badges.csv` (credits in brackets):
+- It is one of the 10 accepted badges in `server/data/Accepted Badges.csv` (credits in brackets):
   - The Basics of Google Cloud Compute (4)
   - Configure Service Accounts and IAM Roles for Google Cloud (4)
   - Implement Speech and Language Solutions with Pre-trained APIs (4)
@@ -153,7 +196,7 @@ A badge counts when all of these hold:
   - Store, Process, and Manage Data on Google Cloud - Console (3)
   - Using the Google Cloud Speech API (4)
   - Explore Generative AI in Agent Platform (16)
-- The date shown on the profile is on or after 2026-10-26.
+- The date shown on the profile is on or after 2026-10-26 (`COMPETITION_START_DATE`), and on or before `COMPETITION_END_DATE` if set.
 - Each badge name counts once per participant.
 
 Badges with no readable date are skipped.
@@ -167,6 +210,8 @@ A participant's valid credits are the sum of the CSV's `# of credits required` o
 - Only participants with the same count, credits and date share a rank (1, 1, 3). Within a shared rank, participants are listed by username.
 - Participants with no valid badges share the last rank.
 
+**Swag:** Silver at 5 valid badges, Gold at all 10.
+
 ## API
 
 Errors always have the shape `{ "error": { "code", "message", "details"?, "requestId" } }`. Public responses never contain email addresses.
@@ -175,7 +220,7 @@ Errors always have the shape `{ "error": { "code", "message", "details"?, "reque
 
 `GET /api/leaderboard?page=1&limit=50&search=`
 - `limit` is 1–100.
-- `search` matches usernames case-insensitively as plain text.
+- `search` matches usernames case-insensitively as plain text, up to 100 characters.
 - Ranks stay global when paging or searching.
 - Responses are cacheable for 30 s.
 
@@ -184,9 +229,13 @@ Errors always have the shape `{ "error": { "code", "message", "details"?, "reque
   "lastSuccessfulUpdate": "2026-10-29T14:53:21.363Z",
   "competitionStartDate": "2026-10-26T00:00:00.000Z",
   "pagination": { "page": 1, "limit": 50, "total": 3, "totalPages": 1 },
+  "totalValidBadges": 5,
+  "badgeStats": [{ "name": "The Basics of Google Cloud Compute", "earnedBy": 2 }],
+  "dailyCounts": [{ "date": "2026-10-26", "count": 0 }, { "date": "2026-10-27", "count": 3 }],
   "rows": [
     {
       "rank": 1,
+      "previousRank": 2,
       "userId": "6ae35de0fb18de8bf02bda9a",
       "username": "Asha Rao",
       "skillsUrl": "https://www.skills.google/public_profiles/a1b2c3",
@@ -204,7 +253,31 @@ Errors always have the shape `{ "error": { "code", "message", "details"?, "reque
 
 Before any snapshot exists, `rows` is empty and `lastSuccessfulUpdate` is `null`. A snapshot built before credits were ranked returns `"validCredits": null` until the next crawl or ingestion rebuilds it.
 
-`GET /api/leaderboard/:userId` returns one row in the same shape. A malformed id returns 400 `VALIDATION_ERROR`, and an unknown id 404 `NOT_FOUND`.
+Board-wide fields (not affected by `search` or paging), computed with the same valid-badge rule as ranking:
+- `totalValidBadges`: the sum of `validBadgeCount` over all participants.
+- `badgeStats`: the 10 accepted badges in CSV order with their CSV names; `earnedBy` is how many participants have that badge counted.
+- `dailyCounts`: one entry per day from the competition start to the last crawl's day (or the latest counted badge's day if later), never past today's date in India (Asia/Kolkata) or `COMPETITION_END_DATE`. Each counted badge is counted on its earned date; days with 0 are included.
+
+Each row's `previousRank` is the participant's rank at the previous crawl, or `null` if they were not on the board at that crawl (including anyone who registered since). Registration rebuilds carry it over unchanged, so registering never fakes movement.
+
+On a snapshot built before these fields existed they are absent, and the site hides the matching features. The next rebuild (crawl or registration) adds the three board-wide fields; `previousRank` appears after the next crawl.
+
+`GET /api/leaderboard/:userId` returns one row in the same shape, plus:
+- `position`: the 1-based index in the ranked list;
+- `totalParticipants`;
+- `ahead`: `{ rank, username, validBadgeCount, validCredits }` for the nearest participant with a strictly better rank, or `null` at rank 1.
+
+```json
+{
+  "rank": 9, "previousRank": null, "userId": "6ae35de0fb18de8bf02bda9b", "username": "Ben Lee",
+  "skillsUrl": "https://www.skills.google/public_profiles/d4e5f6",
+  "validBadgeCount": 3, "validCredits": 20, "latestValidBadgeAt": "2026-10-30T00:00:00.000Z", "badges": [ … ],
+  "position": 9, "totalParticipants": 16,
+  "ahead": { "rank": 8, "username": "Asha Rao", "validBadgeCount": 4, "validCredits": 24 }
+}
+```
+
+Same rate limit and 30 s caching as the list. A malformed id returns 400 `VALIDATION_ERROR`, and an unknown id 404 `NOT_FOUND`.
 
 `GET /api/health` is not rate limited and is never cached.
 - `ok`: MongoDB answers and the last successful crawl is recent.
@@ -335,12 +408,20 @@ The run makes about one request per participant every 0.5 s, three at a time, an
    ```
    Repeat the status call until the latest run is no longer `running`.
 5. Check `GET /api/leaderboard` (ranks, counts, `lastSuccessfulUpdate`) and `GET /api/health` (`"status": "ok"`).
-6. Set `CRON_ENABLED=true` and restart. Check `/api/health` again after the next scheduled run.
+6. Build the site with `VITE_API_BASE_URL`, `VITE_SITE_URL` and `VITE_BUILD_ID` (see Frontend), and deploy `client/dist` with the `index.html` fallback.
+7. Set the backend's `CORS_ORIGINS` to the site's origin and restart.
+8. Open `/`, a `/p/<userId>` link and `/community` on a phone and a desktop; the footer should read "All systems normal". Paste the site's URL into a chat app to check the link preview image.
+9. Set `CRON_ENABLED=true` and restart. Check `/api/health` again after the next scheduled run.
 
 ## Operating notes
 
 - **Never run `server/seeds/userSeed.js` against the live database.** It deletes every user before importing. It was only for the initial import.
-- **The dashboard must read the REST API (`/api/leaderboard`), not MongoDB.** Only the API applies the full counting rules.
+- **The site must read the REST API (`/api/leaderboard`), not MongoDB.** Only the API applies the full counting rules.
+- **Content-Security-Policy.** If the site's host sends a CSP, it must allow:
+  - the inline theme script in `client/index.html` (by its sha256 hash; it sets `data-bs-theme` before the first paint, and the hash changes whenever the script does);
+  - the inline `onload` on the Google Fonts preload (`'unsafe-hashes'` with its hash; without it the site falls back to the system font);
+  - `style-src` for `cdn.jsdelivr.net` and `fonts.googleapis.com`, `font-src` for `fonts.gstatic.com`, `connect-src` for the API origin, and `worker-src 'self'`.
+- **Offline caching.** The production site registers `/sw.js`. It caches the app shell, and fetches `/api/leaderboard` network-first (searches excluded), so the last board stays readable offline with an "Offline. Showing data from …" notice. Health, admin and registration routes are never cached. The shell cache is named after `VITE_BUILD_ID` (or the bundle URL) and old shell caches are removed when a new worker activates; the API cache persists across deploys.
 - **Take a `mongodump` backup** before any manual data change or risky deployment.
 - **Run a single instance.** Rate limiting and leaderboard rebuild ordering are in-process; the crawl lock is in MongoDB.
 - **Shutdown is graceful.** On SIGTERM or SIGINT the server:

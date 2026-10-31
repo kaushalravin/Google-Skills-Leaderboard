@@ -10,7 +10,7 @@ const cheerio = require("cheerio");
 const { loadEnv, loadEnvFile, EnvError } = require("../config/env");
 const { createLogger } = require("../config/logger");
 const { connectDb, disconnectDb } = require("../config/db");
-const { crawlAll, settingsFromConfig } = require("../services/crawl");
+const { crawlAll, settingsFromConfig, DAY_MS } = require("../services/crawl");
 const { scrapeProfile } = require("../scraper/webScraper");
 const { User } = require("../models/users");
 
@@ -25,7 +25,7 @@ const UNIQUE_INDEXES = [
 ];
 
 function dayBefore(isoDate) {
-    return new Date(Date.parse(`${isoDate}T00:00:00.000Z`) - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    return new Date(Date.parse(`${isoDate}T00:00:00.000Z`) - DAY_MS).toISOString().slice(0, 10);
 }
 
 /** Read-only (listIndexes): "ok", "MISSING" or "no collection" for each unique index. */

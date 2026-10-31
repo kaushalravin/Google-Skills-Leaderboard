@@ -31,7 +31,7 @@ after(async () => {
 const twoBadges = () => ({ badges: [badge(COMPUTE, "Oct 26, 2026"), badge(WEBSITE, "Oct 27, 2026")] });
 const requestsFor = (s, id) => s.googleRequests().filter((r) => r.id === id);
 
-test("12: a profile that later shows the sign-in page keeps its badges, is an empty_result and makes the run partial", async () => {
+test("a profile that later shows the sign-in page keeps its badges, is an empty_result and makes the run partial", async () => {
     const s = await h.newServer();
     const profiles = { flaky: twoBadges(), steady: { badges: [badge(VISION, "Oct 27, 2026")] } };
     s.setProfiles(profiles);
@@ -56,7 +56,7 @@ test("12: a profile that later shows the sign-in page keeps its badges, is an em
     assert.equal((await s.board()).lastSuccessfulUpdate, run.finishedAt);
 });
 
-test("13: a 404 is not retried (one request) and the participant's data is kept", async () => {
+test("a 404 is not retried (one request) and the participant's data is kept", async () => {
     const s = await h.newServer();
     const profiles = { gone: twoBadges(), here: twoBadges() };
     s.setProfiles(profiles);
@@ -74,7 +74,7 @@ test("13: a 404 is not retried (one request) and the participant's data is kept"
     assert.equal((await s.user("Gone")).badgeCount, 2);
 });
 
-test("14: a 500 is retried and the second attempt succeeds", async () => {
+test("a 500 is retried and the second attempt succeeds", async () => {
     const s = await h.newServer();
     s.setProfiles({ wobbly: { mode: "500-then-200", ...twoBadges() } });
     await s.ingest(participant("wobbly", "Wobbly"));
@@ -84,7 +84,7 @@ test("14: a 500 is retried and the second attempt succeeds", async () => {
     assert.equal((await s.row("Wobbly")).validBadgeCount, 2);
 });
 
-test("15: a 429 with Retry-After: 1 pauses that profile and every other worker for ~1 s", async () => {
+test("a 429 with Retry-After: 1 pauses that profile and every other worker for ~1 s", async () => {
     const s = await h.newServer({ env: { CRAWL_CONCURRENCY: "3", CRAWL_MIN_GAP_MS: "10" } });
     // The others answer slowly, so the 429 lands while they are still in flight.
     const profiles = { limited: { mode: "429-then-200", ...twoBadges() } };
@@ -107,7 +107,7 @@ test("15: a 429 with Retry-After: 1 pauses that profile and every other worker f
     for (const r of later) assert.ok(r.t - tooMany.t >= 950, `${r.id} started ${r.t - tooMany.t} ms after the 429: ${JSON.stringify(log)}`);
 });
 
-test("16: a block (every profile shows the sign-in page) fails the run and leaves the public leaderboard untouched", async () => {
+test("a block (every profile shows the sign-in page) fails the run and leaves the public leaderboard untouched", async () => {
     const s = await h.newServer();
     const ids = ["u1", "u2", "u3", "u4", "u5", "u6"];
     const profiles = Object.fromEntries(ids.map((id) => [id, twoBadges()]));
@@ -128,7 +128,7 @@ test("16: a block (every profile shows the sign-in page) fails the run and leave
     assert.deepEqual(await s.db.collection("users").find().sort({ _id: 1 }).toArray(), usersBefore);
 });
 
-test("17: across varied crawls nothing is deleted, counts never drop, and repeats create no duplicates", async () => {
+test("across varied crawls nothing is deleted, counts never drop, and repeats create no duplicates", async () => {
     const s = await h.newServer();
     const ids = ["v1", "v2", "v3", "v4"];
     const profiles = Object.fromEntries(ids.map((id) => [id, twoBadges()]));
@@ -166,7 +166,7 @@ test("17: across varied crawls nothing is deleted, counts never drop, and repeat
     assert.deepEqual(await counts(), repeat, "an identical crawl adds nothing");
 });
 
-test("18: graceful shutdown mid-crawl ends the run 'aborted', releases the lock and exits 0; a restart crawls fine", async () => {
+test("graceful shutdown mid-crawl ends the run 'aborted', releases the lock and exits 0; a restart crawls fine", async () => {
     const s = await h.newServer();
     const ids = ["s1", "s2", "s3", "s4", "s5", "s6"];
     s.setProfiles(Object.fromEntries(ids.map((id) => [id, { ...twoBadges(), delayMs: 1500 }])));
@@ -194,7 +194,7 @@ test("18: graceful shutdown mid-crawl ends the run 'aborted', releases the lock 
     assert.equal(second, 0);
 });
 
-test("18b: after a hard crash mid-crawl, a restart reconciles the orphaned run and the next crawl succeeds", async () => {
+test("after a hard crash mid-crawl, a restart reconciles the orphaned run and the next crawl succeeds", async () => {
     const s = await h.newServer({ env: { LOCK_TTL_MS: "5000" } });
     const ids = ["k1", "k2", "k3", "k4"];
     s.setProfiles(Object.fromEntries(ids.map((id) => [id, { ...twoBadges(), delayMs: 2000 }])));
@@ -222,7 +222,7 @@ test("18b: after a hard crash mid-crawl, a restart reconciles the orphaned run a
     assert.equal(await restarted.db.collection("crawler_logs").countDocuments({ status: "running" }), 0);
 });
 
-test("19: two concurrent manual crawls give one 202 and one 409 with the holder; with CRON_ENABLED=false nothing is scheduled", async () => {
+test("two concurrent manual crawls give one 202 and one 409 with the holder; with CRON_ENABLED=false nothing is scheduled", async () => {
     const s = await h.newServer({ env: { CRON_ENABLED: "false", CRON_SCHEDULE: "* * * * * *" } });
     s.setProfiles({ slow: { ...twoBadges(), delayMs: 1000 } });
     await s.ingest(participant("slow", "Slow"));
@@ -237,7 +237,7 @@ test("19: two concurrent manual crawls give one 202 and one 409 with the holder;
     assert.ok(!Number.isNaN(Date.parse(conflict.body.error.details.since)));
     await s.waitForRun(accepted.body.runId);
 
-    // A every-second schedule would have fired by now if cron were enabled.
+    // An every-second schedule would have fired by now if cron were enabled.
     await sleep(2500);
     assert.equal(await s.db.collection("crawler_logs").countDocuments({ trigger: "cron" }), 0);
     assert.equal(await s.db.collection("crawler_logs").countDocuments(), 1);
@@ -245,7 +245,7 @@ test("19: two concurrent manual crawls give one 202 and one 409 with the holder;
     assert.equal((await s.get("/api/health")).body.cron.enabled, false);
 });
 
-test("20: check:real reports against the fake profiles and leaves the database byte-for-byte unchanged", async () => {
+test("check:real reports against the fake profiles and leaves the database byte-for-byte unchanged", async () => {
     const s = await h.newServer();
     const profiles = {
         r1: twoBadges(),
@@ -297,6 +297,6 @@ test("20: check:real reports against the fake profiles and leaves the database b
     assert.deepEqual(await dumpDb(s.db), before);
 });
 
-test("31 (this file): no public response contained an email, '@' or internal details", () => {
+test("no public response in this file contained an email, '@' or internal details", () => {
     assertPublicResponsesClean();
 });

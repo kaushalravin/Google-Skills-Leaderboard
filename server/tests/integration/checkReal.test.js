@@ -2,14 +2,13 @@ require("../../config/timezone");
 
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { execFile } = require("node:child_process");
-const { promisify } = require("node:util");
 const path = require("node:path");
 const mongoose = require("mongoose");
 const { MongoMemoryReplSet } = require("mongodb-memory-server");
 const { MongoClient } = require("mongodb");
 
-const { TEST_ADMIN_KEY, testConfig } = require("../helpers/env");
+const { testConfig } = require("../helpers/env");
+const { runScript } = require("../helpers/childProcess");
 
 const CLI = path.resolve(__dirname, "../../scripts/check-real.js");
 let replSet;
@@ -25,9 +24,8 @@ after(async () => {
 
 test("check:real against an empty DB writes nothing and creates no collections", async (t) => {
     const uri = replSet.getUri("check-empty");
-    const { stdout } = await promisify(execFile)(process.execPath, [CLI], {
-        env: { ...process.env, ENV_FILE: "", MONGO_URI: uri, ADMIN_API_KEY: TEST_ADMIN_KEY, LOG_LEVEL: "silent" }
-    });
+    const { code, stdout, stderr } = await runScript(CLI, [], uri);
+    assert.equal(code, 0, stderr);
     assert.match(stdout, /users crawled: 0/);
     assert.match(stdout, /no user with a skillsUrl; skipped/);
     assert.match(stdout, /no collection\s+users \(email\) \(the server creates it at startup\)/);
@@ -107,9 +105,8 @@ test("check:real reports every unique index ok, with no warning, when they all e
     const indexes = async () => [await db.collection("users").indexes(), await db.collection("userbadges").indexes()];
     const before = await indexes();
 
-    const { stdout } = await promisify(execFile)(process.execPath, [CLI], {
-        env: { ...process.env, ENV_FILE: "", MONGO_URI: uri, ADMIN_API_KEY: TEST_ADMIN_KEY, LOG_LEVEL: "silent" }
-    });
+    const { code, stdout, stderr } = await runScript(CLI, [], uri);
+    assert.equal(code, 0, stderr);
     assert.match(stdout, /ok\s+users \(email\)\nok\s+users \(skillsEmail\)\nok\s+users \(skillsUrl\)\nok\s+userbadges \(user \+ badge\)/);
     assert.doesNotMatch(stdout, /WARNING|MISSING/);
     assert.deepEqual(await indexes(), before, "check:real never creates or changes indexes");

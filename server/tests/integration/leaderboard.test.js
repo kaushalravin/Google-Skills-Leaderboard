@@ -1,17 +1,16 @@
 require("../../config/timezone");
 
-const { test, before, after, beforeEach } = require("node:test");
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const request = require("supertest");
 
-const { startMongo } = require("../helpers/mongo");
-const { buildTestApp } = require("../helpers/app");
+const { leaderboardSuite, makeUser, award, rebuild, getSnapshot } = require("../helpers/leaderboard");
 const { User } = require("../../models/users");
 const { Badge } = require("../../models/badges");
 const { UserBadge } = require("../../models/userBadges");
 const { Leaderboard } = require("../../models/leaderboard");
-const { rebuildLeaderboard, getSnapshot } = require("../../services/leaderboard");
-const { crawlAll } = require("../../services/crawl");
+const { crawlAll, settingsFromConfig } = require("../../services/crawl");
+const { testConfig } = require("../helpers/env");
 
 const COMPUTE = "The Basics of Google Cloud Compute";
 const WEBSITE = "Build a Website on Google Cloud";
@@ -24,49 +23,7 @@ const LANGUAGE = "Implement Speech and Language Solutions with Pre-trained APIs"
 const AGENT = "Explore Generative AI in Agent Platform";
 // Credits from the CSV: COMPUTE 4, WEBSITE 13, VISION 12, SPEECH 4, IAM 4, LANGUAGE 4, AGENT 16, STUDIO 0, GEMINI 0.
 
-let mongo;
-let app;
-let seq = 0;
-
-before(async () => {
-    mongo = await startMongo();
-    await Promise.all([User.init(), Badge.init(), UserBadge.init(), Leaderboard.init()]);
-    ({ app } = buildTestApp());
-});
-
-after(async () => {
-    await mongo?.stop();
-});
-
-beforeEach(async () => {
-    await Promise.all([
-        User.deleteMany({}), Badge.deleteMany({}), UserBadge.deleteMany({}), Leaderboard.deleteMany({})
-    ]);
-});
-
-async function makeUser(username) {
-    seq++;
-    return User.create({
-        username,
-        email: `u${seq}@example.com`,
-        skillsEmail: `u${seq}@skills.example.com`,
-        skillsUrl: `https://www.skills.google/public_profiles/user-${seq}`,
-        badgeCount: 0,
-        credits: 3
-    });
-}
-
-async function award(user, name, earnedAt, { newBadgeDoc = false } = {}) {
-    seq++;
-    const existing = newBadgeDoc ? null : await Badge.findOne({ name });
-    const badge = existing ?? (await Badge.create({
-        externalId: `ext-${seq}`,
-        name,
-        badgeUrl: `https://www.skills.google/badges/${seq}`,
-        imageUrl: `https://cdn.example/${seq}.png`
-    }));
-    return UserBadge.create({ user: user._id, badge: badge._id, earnedAt: new Date(earnedAt) });
-}
+const suite = leaderboardSuite();
 
 async function dbState() {
     const [users, badges, userBadges] = await Promise.all([
@@ -77,7 +34,7 @@ async function dbState() {
     return { users, badges, userBadges };
 }
 
-const list = (query = "") => request(app).get(`/api/leaderboard${query}`);
+const list = (query = "") => request(suite.app).get(`/api/leaderboard${query}`);
 const summary = (rows) => rows.map((r) => [r.rank, r.username, r.validBadgeCount, r.validCredits]);
 
 test("ranks by count desc, then credits desc, then latest valid badge asc; ties share a rank (1,1,3); zero-badge users share the last rank", async () => {
@@ -102,7 +59,7 @@ test("ranks by count desc, then credits desc, then latest valid badge asc; ties 
     await award(golf, COMPUTE, "2026-10-26");
 
     const last = new Date("2026-10-29T06:00:00Z");
-    assert.deepEqual(await rebuildLeaderboard({ lastSuccessfulUpdate: last }), { participants: 7 });
+    assert.deepEqual(await rebuild({ lastSuccessfulUpdate: last }), { participants: 7 });
 
     const res = await list();
     assert.equal(res.status, 200);
@@ -136,7 +93,7 @@ test("equal count: more credits ranks higher even when its latest badge is later
     await award(early, SPEECH, "2026-10-26");
     await award(rich, VISION, "2026-10-28");
     await award(rich, WEBSITE, "2026-10-30");
-    await rebuildLeaderboard({});
+    await rebuild({});
 
     assert.deepEqual(summary((await list()).body.rows), [[1, "Rich", 2, 25], [2, "Early", 2, 8]]);
 });
@@ -151,7 +108,7 @@ test("equal count and credits: the earlier latest badge ranks higher; an identic
     await award(bea, SPEECH, "2026-10-27");
     await award(ann, COMPUTE, "2026-10-27");
     await award(ann, IAM, "2026-10-26");
-    await rebuildLeaderboard({});
+    await rebuild({});
 
     assert.deepEqual(summary((await list()).body.rows), [
         [1, "Ann", 2, 8],
@@ -169,7 +126,7 @@ test("0-credit badges still count: all-0-credit ranks below the same count with 
     await award(paid, COMPUTE, "2026-10-28");
     await award(paid, IAM, "2026-10-29");
     await award(one, AGENT, "2026-10-26");
-    await rebuildLeaderboard({});
+    await rebuild({});
 
     assert.deepEqual(summary((await list()).body.rows), [
         [1, "Paid", 2, 8],
@@ -194,7 +151,7 @@ test("a snapshot built before credits were ranked serves validCredits as null, n
     const res = await list();
     assert.equal(res.status, 200);
     assert.equal(res.body.rows[0].validCredits, null);
-    const one = await request(app).get(`/api/leaderboard/${user._id}`);
+    const one = await request(suite.app).get(`/api/leaderboard/${user._id}`);
     assert.equal(one.status, 200);
     assert.equal(one.body.validCredits, null);
 });
@@ -209,13 +166,13 @@ test("non-whitelisted, pre-start, non-zero seconds/ms and post-end rows are excl
     await award(user, STUDIO, "2026-10-26");                      // valid
     await award(user, IAM, "2026-11-05");                         // valid unless an end date excludes it
 
-    await rebuildLeaderboard({});
+    await rebuild({});
     let row = (await getSnapshot()).rows[0];
     assert.equal(row.validBadgeCount, 2);
     assert.equal(row.validCredits, 4, "only STUDIO (0) and IAM (4) add credits");
     assert.deepEqual(row.badges.map((b) => b.name), [STUDIO, IAM]);
 
-    await rebuildLeaderboard({ endDate: "2026-11-04" });
+    await rebuild({ endDate: "2026-11-04" });
     row = (await getSnapshot()).rows[0];
     assert.equal(row.validBadgeCount, 1);
     assert.equal(row.validCredits, 0);
@@ -226,9 +183,9 @@ test("overlapping rebuilds run in order: a later 'keep' rebuild never reverts a 
     const user = await makeUser("Overlap");
     const crawledAt = new Date("2026-10-29T06:00:00.000Z");
     // A crawl's rebuild starts, and an ingestion rebuild (no lastSuccessfulUpdate) overlaps it.
-    const crawl = rebuildLeaderboard({ lastSuccessfulUpdate: crawledAt });
+    const crawl = rebuild({ lastSuccessfulUpdate: crawledAt });
     await award(user, COMPUTE, "2026-10-27");
-    const ingest = rebuildLeaderboard({});
+    const ingest = rebuild({});
     await Promise.all([crawl, ingest]);
 
     const snapshot = await getSnapshot();
@@ -242,7 +199,7 @@ test("two Badge docs with the same name count once and add credits once (earlies
     await award(user, COMPUTE, "2026-10-27", { newBadgeDoc: true });
     assert.equal(await Badge.countDocuments({ name: COMPUTE }), 2);
 
-    await rebuildLeaderboard({});
+    await rebuild({});
     const row = (await getSnapshot()).rows[0];
     assert.equal(row.validBadgeCount, 1);
     assert.equal(row.validCredits, 4);
@@ -253,16 +210,16 @@ test("two Badge docs with the same name count once and add credits once (earlies
 test("rebuild replaces the single snapshot doc; concurrent readers see the old or the new one, never a mix", async () => {
     const users = [];
     for (let i = 0; i < 30; i++) users.push(await makeUser(`Old ${String(i).padStart(2, "0")}`));
-    await rebuildLeaderboard({ lastSuccessfulUpdate: new Date("2026-10-28T00:00:00Z") });
+    await rebuild({ lastSuccessfulUpdate: new Date("2026-10-28T00:00:00Z") });
 
     await User.deleteMany({ _id: { $in: users.slice(0, 20).map((u) => u._id) } });
     const fresh = await makeUser("New");
     await award(fresh, COMPUTE, "2026-10-27");
 
-    const rebuild = rebuildLeaderboard({ lastSuccessfulUpdate: new Date("2026-10-29T00:00:00Z") });
+    const rebuilding = rebuild({ lastSuccessfulUpdate: new Date("2026-10-29T00:00:00Z") });
     const reads = [];
     for (let i = 0; i < 10; i++) reads.push(list("?limit=100"));
-    await rebuild;
+    await rebuilding;
     for (const res of await Promise.all(reads)) {
         const { total } = res.body.pagination;
         if (total === 30) {
@@ -287,7 +244,7 @@ test("a failed crawl leaves the previous snapshot and lastSuccessfulUpdate in pl
     const user = await makeUser("Kept");
     await award(user, COMPUTE, "2026-10-27");
     const last = new Date("2026-10-28T12:00:00Z");
-    await rebuildLeaderboard({ lastSuccessfulUpdate: last });
+    await rebuild({ lastSuccessfulUpdate: last });
     const beforeRes = await list();
 
     // New data appears, then a crawl fails for everyone; nothing rebuilds the snapshot.
@@ -295,7 +252,7 @@ test("a failed crawl leaves the previous snapshot and lastSuccessfulUpdate in pl
     const failing = async () => {
         throw Object.assign(new Error("boom"), { isAxiosError: true, response: { status: 404, headers: {} } });
     };
-    const result = await crawlAll({ scrape: failing, minGapMs: 0, maxRetries: 0 });
+    const result = await crawlAll({ ...settingsFromConfig(testConfig()), scrape: failing, minGapMs: 0, maxRetries: 0 });
     assert.equal(result.succeeded, 0);
 
     const afterRes = await list();
@@ -311,7 +268,7 @@ test("pagination keeps global ranks", async () => {
         const u = await makeUser(names[i]);
         for (let b = 0; b < names.length - i; b++) await award(u, badges[b], "2026-10-27");
     }
-    await rebuildLeaderboard({});
+    await rebuild({});
 
     const page2 = await list("?page=2&limit=2");
     assert.deepEqual(summary(page2.body.rows), [[3, "C", 3, 29], [4, "D", 2, 17]]);
@@ -330,7 +287,7 @@ test("search is literal and case-insensitive; regex characters are safe; ranks s
     for (const name of ["a.b", "axb", "x.*y", "(paren", "[a]", "Plain"]) await makeUser(name);
     const top = await makeUser("Top");
     await award(top, COMPUTE, "2026-10-27");
-    await rebuildLeaderboard({});
+    await rebuild({});
 
     const search = async (term) => {
         const res = await list(`?search=${encodeURIComponent(term)}`);
@@ -354,18 +311,21 @@ test("search is literal and case-insensitive; regex characters are safe; ranks s
     assert.equal(tooLong.body.error.code, "VALIDATION_ERROR");
 });
 
-test("no email or skillsEmail in any response or in the stored doc", async () => {
+test("no email or skillsEmail in any response or in the stored doc, after a crawl and an ingestion rebuild", async () => {
     const user = await makeUser("Private");
+    const other = await makeUser("Other");
     await award(user, COMPUTE, "2026-10-27");
-    await rebuildLeaderboard({});
+    await rebuild({ lastSuccessfulUpdate: new Date("2026-10-28T06:00:00Z") });
+    await rebuild({});
 
     const stored = JSON.stringify(await getSnapshot());
     const responses = [
         await list(),
         await list("?search=priv"),
-        await request(app).get(`/api/leaderboard/${user._id}`),
-        await request(app).get("/api/leaderboard/000000000000000000000000"),
-        await request(app).get("/api/leaderboard/bad")
+        await request(suite.app).get(`/api/leaderboard/${user._id}`),
+        await request(suite.app).get(`/api/leaderboard/${other._id}`),
+        await request(suite.app).get("/api/leaderboard/000000000000000000000000"),
+        await request(suite.app).get("/api/leaderboard/bad")
     ];
     for (const text of [stored, ...responses.map((r) => r.text)]) {
         assert.ok(!/email/i.test(text), text);
@@ -378,11 +338,11 @@ test("GET /:userId returns the row with badges; 400 on a malformed id, 404 when 
     await award(user, COMPUTE, "2026-10-27");
 
     // No snapshot yet: unknown.
-    const early = await request(app).get(`/api/leaderboard/${user._id}`);
+    const early = await request(suite.app).get(`/api/leaderboard/${user._id}`);
     assert.equal(early.status, 404);
 
-    await rebuildLeaderboard({});
-    const ok = await request(app).get(`/api/leaderboard/${user._id}`);
+    await rebuild({});
+    const ok = await request(suite.app).get(`/api/leaderboard/${user._id}`);
     assert.equal(ok.status, 200);
     assert.match(ok.headers["cache-control"], /public, max-age=30/);
     assert.equal(ok.body.userId, String(user._id));
@@ -394,12 +354,12 @@ test("GET /:userId returns the row with badges; 400 on a malformed id, 404 when 
     assert.equal(ok.body.badges[0].earnedAt, "2026-10-27T00:00:00.000Z");
     assert.match(ok.body.badges[0].imageUrl, /^https:\/\/cdn\.example\//);
 
-    const bad = await request(app).get("/api/leaderboard/not-an-id");
+    const bad = await request(suite.app).get("/api/leaderboard/not-an-id");
     assert.equal(bad.status, 400);
     assert.equal(bad.body.error.code, "VALIDATION_ERROR");
     assert.equal(typeof bad.body.error.requestId, "string");
 
-    const missing = await request(app).get("/api/leaderboard/0123456789abcdef01234567");
+    const missing = await request(suite.app).get("/api/leaderboard/0123456789abcdef01234567");
     assert.equal(missing.status, 404);
     assert.deepEqual(Object.keys(missing.body.error).sort(), ["code", "message", "requestId"]);
     assert.equal(missing.body.error.code, "NOT_FOUND");
@@ -432,8 +392,8 @@ test("rebuild never modifies User, Badge or UserBadge", async () => {
     await award(b, WEBSITE, "2026-10-27T10:11:05.000Z");
     const beforeState = await dbState();
 
-    await rebuildLeaderboard({});
-    await rebuildLeaderboard({ endDate: "2026-10-26" });
+    await rebuild({});
+    await rebuild({ endDate: "2026-10-26" });
 
     assert.deepEqual(await dbState(), beforeState);
 });

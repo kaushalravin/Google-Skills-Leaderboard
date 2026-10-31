@@ -5,16 +5,17 @@ const assert = require("node:assert/strict");
 const { setTimeout: sleep } = require("node:timers/promises");
 const request = require("supertest");
 
-const { buildTestApp } = require("../helpers/app");
+const { buildTestApp, assertErrorShape } = require("../helpers/app");
 const { startMongo } = require("../helpers/mongo");
-const { TEST_ADMIN_KEY } = require("../helpers/env");
+const { TEST_ADMIN_KEY, testConfig } = require("../helpers/env");
 const { User } = require("../../models/users");
 const { CrawlerLog } = require("../../models/crawlerLog");
 const { getLockState } = require("../../services/lock");
 const { JobLock } = require("../../models/jobLock");
 const { startCrawl } = require("../../services/crawlRunner");
+const { settingsFromConfig } = require("../../services/crawl");
 
-const CRAWL_OPTIONS = { minGapMs: 0, maxRetries: 0, startDate: "2026-10-26" };
+const CRAWL_OPTIONS = { ...settingsFromConfig(testConfig()), minGapMs: 0, maxRetries: 0 };
 
 let mongo;
 let app;
@@ -44,13 +45,6 @@ beforeEach(async () => {
     await Promise.all([User.deleteMany({}), CrawlerLog.deleteMany({}), JobLock.collection.deleteMany({})]);
     rebuildCalls.length = 0;
 });
-
-function assertErrorShape(res, status, code) {
-    assert.equal(res.status, status);
-    assert.equal(res.body.error.code, code);
-    assert.equal(typeof res.body.error.message, "string");
-    assert.equal(res.body.error.requestId, res.headers["x-request-id"]);
-}
 
 async function waitForRun(runId) {
     for (let i = 0; i < 100; i++) {
@@ -103,7 +97,7 @@ test("while a cron run holds the lock, a manual POST /crawl gets 409 with the ho
     const gate = new Promise((resolve) => (releaseScrape = resolve));
     const cronRun = await startCrawl(
         { trigger: "cron", triggeredBy: "cron" },
-        { crawlOptions: CRAWL_OPTIONS, scrape: async () => { await gate; return []; }, rebuildLeaderboard: async () => {} }
+        { crawlOptions: CRAWL_OPTIONS, lockTtlMs: testConfig().LOCK_TTL_MS, scrape: async () => { await gate; return []; }, rebuildLeaderboard: async () => {} }
     );
     assert.equal(cronRun.started, true);
     const holder = await getLockState("crawl");

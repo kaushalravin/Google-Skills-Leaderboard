@@ -1,6 +1,6 @@
 const helmet = require("helmet");
 const cors = require("cors");
-const { rateLimit, MemoryStore } = require("express-rate-limit");
+const { rateLimit } = require("express-rate-limit");
 
 const { AppError } = require("./errors");
 
@@ -18,7 +18,6 @@ function limiter(limit) {
         limit,
         standardHeaders: "draft-7",
         legacyHeaders: false,
-        store: new MemoryStore(),
         handler: (req, res, next) => {
             next(new AppError(429, "RATE_LIMITED", "Too many requests, please try again later"));
         }

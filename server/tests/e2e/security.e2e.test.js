@@ -7,7 +7,7 @@ const {
     participant,
     profileUrl,
     assertPublicResponsesClean,
-    assertNoInternals,
+    assertErrorShape,
     ADMIN_KEY
 } = require("./helpers/harness");
 
@@ -26,20 +26,12 @@ const ADMIN_ROUTES = [
     ["POST", "/api/admin/participants"]
 ];
 
-function assertStandardError(res, status, code) {
-    assert.equal(res.status, status, res.text);
-    assert.equal(res.body.error.code, code);
-    assert.equal(typeof res.body.error.message, "string");
-    assert.ok(res.body.error.requestId);
-    assertNoInternals(res.text);
-}
-
 async function dataCounts(s) {
     const names = ["users", "badges", "userbadges", "crawler_logs"];
     return Object.fromEntries(await Promise.all(names.map(async (n) => [n, await s.db.collection(n).countDocuments()])));
 }
 
-test("25: every admin route returns 401 for a missing, empty, wrong, one-char-off or wrong-case key", async () => {
+test("every admin route returns 401 for a missing, empty, wrong, one-char-off or wrong-case key", async () => {
     const s = await h.newServer();
     const oneOff = ADMIN_KEY.slice(0, -1) + (ADMIN_KEY.endsWith("F") ? "E" : "F");
     // (Surrounding whitespace isn't a variant: HTTP strips it from header values.)
@@ -51,7 +43,7 @@ test("25: every admin route returns 401 for a missing, empty, wrong, one-char-of
             const headers = key === undefined ? {} : { "x-admin-key": key };
             const body = method === "POST" && path.endsWith("participants") ? participant("intruder", "Intruder") : undefined;
             const res = await s.request(method, path, { headers, body });
-            assertStandardError(res, 401, "UNAUTHORIZED");
+            assertErrorShape(res, 401, "UNAUTHORIZED");
             assert.equal(res.headers.get("cache-control"), "no-store");
         }
     }
@@ -60,30 +52,30 @@ test("25: every admin route returns 401 for a missing, empty, wrong, one-char-of
     assert.equal((await s.get("/api/admin/crawl/status", { admin: true })).status, 200);
 });
 
-test("26: brute force is throttled before auth: after the limit even the right key gets 429", async () => {
+test("brute force is throttled before auth: after the limit even the right key gets 429", async () => {
     const s = await h.newServer({ env: { RATE_LIMIT_ADMIN_PER_MIN: "5" } });
     for (let i = 0; i < 5; i++) {
-        assertStandardError(await s.get("/api/admin/crawl/status", { headers: { "x-admin-key": `guess-${i}` } }), 401, "UNAUTHORIZED");
+        assertErrorShape(await s.get("/api/admin/crawl/status", { headers: { "x-admin-key": `guess-${i}` } }), 401, "UNAUTHORIZED");
     }
     const blocked = await s.get("/api/admin/crawl/status", { admin: true });
-    assertStandardError(blocked, 429, "RATE_LIMITED");
+    assertErrorShape(blocked, 429, "RATE_LIMITED");
     assert.ok(blocked.headers.get("retry-after") || blocked.headers.get("ratelimit"), "rate-limit headers are sent");
-    assertStandardError(await s.post("/api/admin/crawl", { admin: true }), 429, "RATE_LIMITED");
+    assertErrorShape(await s.post("/api/admin/crawl", { admin: true }), 429, "RATE_LIMITED");
     assert.equal(await s.db.collection("crawler_logs").countDocuments(), 0, "the throttled crawl never started");
     // Public routes have their own limiter.
     assert.equal((await s.get("/api/leaderboard")).status, 200);
 });
 
-test("27: the public leaderboard is rate limited per IP; health is not", async () => {
+test("the public leaderboard is rate limited per IP; health is not", async () => {
     const s = await h.newServer({ env: { RATE_LIMIT_PUBLIC_PER_MIN: "3" } });
     for (let i = 0; i < 3; i++) assert.equal((await s.get("/api/leaderboard")).status, 200);
-    assertStandardError(await s.get("/api/leaderboard"), 429, "RATE_LIMITED");
-    assertStandardError(await s.get("/api/leaderboard/0123456789abcdef01234567"), 429, "RATE_LIMITED");
+    assertErrorShape(await s.get("/api/leaderboard"), 429, "RATE_LIMITED");
+    assertErrorShape(await s.get("/api/leaderboard/0123456789abcdef01234567"), 429, "RATE_LIMITED");
     for (let i = 0; i < 5; i++) assert.equal((await s.get("/api/health/live")).status, 200);
     assert.equal((await s.get("/api/health")).status, 200);
 });
 
-test("28: ingestion rejects unsafe profile URLs and normalizes the accepted variants", async () => {
+test("ingestion rejects unsafe profile URLs and normalizes the accepted variants", async () => {
     const s = await h.newServer();
     const bad = [
         "https://evil.example.com/public_profiles/abc",
@@ -126,7 +118,7 @@ test("28: ingestion rejects unsafe profile URLs and normalizes the accepted vari
     assert.deepEqual(stored, good.map(([, canonical]) => canonical).sort());
 });
 
-test("29: NoSQL operators: a batch of injected rows is a 422, unknown query keys are ignored, and no data changes", async () => {
+test("NoSQL operators: a batch of injected rows is a 422, unknown query keys are ignored, and no data changes", async () => {
     const s = await h.newServer();
     s.setProfiles({ base: { badges: [badge("Build a Website on Google Cloud", "Oct 27, 2026")] } });
     await s.ingest(participant("base", "Base"));
@@ -144,10 +136,10 @@ test("29: NoSQL operators: a batch of injected rows is a 422, unknown query keys
     ];
     for (const body of bodies) {
         const res = await s.post("/api/admin/participants", { body, admin: true });
-        assertStandardError(res, 422, "ALL_ROWS_REJECTED");
+        assertErrorShape(res, 422, "ALL_ROWS_REJECTED");
     }
     const envelope = await s.post("/api/admin/participants", { body: { participants: { $gt: [] } }, admin: true });
-    assertStandardError(envelope, 400, "VALIDATION_ERROR");
+    assertErrorShape(envelope, 400, "VALIDATION_ERROR");
 
     // Unknown query keys are ignored by design, so harmless extras like a dashboard's cache-busting
     // "?_=…" never break a request. Express keeps "search[$ne]" as a literal key name (no nested
@@ -159,15 +151,15 @@ test("29: NoSQL operators: a batch of injected rows is a 422, unknown query keys
         assert.deepEqual(res.body, plain, q);
     }
     // Typed parameters reject anything that isn't the expected type.
-    assertStandardError(await s.get("/api/leaderboard?page=abc"), 400, "VALIDATION_ERROR");
-    assertStandardError(await s.get("/api/leaderboard?search=a&search=b"), 400, "VALIDATION_ERROR");
-    assertStandardError(await s.get("/api/leaderboard/%7B%22$ne%22:null%7D"), 400, "VALIDATION_ERROR");
+    assertErrorShape(await s.get("/api/leaderboard?page=abc"), 400, "VALIDATION_ERROR");
+    assertErrorShape(await s.get("/api/leaderboard?search=a&search=b"), 400, "VALIDATION_ERROR");
+    assertErrorShape(await s.get("/api/leaderboard/%7B%22$ne%22:null%7D"), 400, "VALIDATION_ERROR");
 
     assert.deepEqual(await dataCounts(s), before);
     assert.deepEqual(await s.user("Base"), baseUser);
 });
 
-test("30: search treats regex metacharacters literally and returns quickly", async () => {
+test("search treats regex metacharacters literally and returns quickly", async () => {
     const s = await h.newServer();
     await s.ingest([
         participant("lit1", "a.b (dev)"),
@@ -191,7 +183,7 @@ test("30: search treats regex metacharacters literally and returns quickly", asy
     }
 });
 
-test("31: no public response anywhere in this file contained an email, '@' or internal details", async () => {
+test("no public response anywhere in this file contained an email, '@' or internal details", async () => {
     const s = await h.newServer();
     s.setProfiles({ pii: { badges: [badge("Build a Website on Google Cloud", "Oct 27, 2026")] } });
     await s.ingest(participant("pii", "Pii Person", { email: "pii.person@example.com", skillsEmail: "pii.skills@example.com" }));
@@ -203,7 +195,7 @@ test("31: no public response anywhere in this file contained an email, '@' or in
     assertPublicResponsesClean();
 });
 
-test("32: helmet's security headers are set; with CORS_ORIGINS a disallowed Origin gets no Access-Control-Allow-Origin", async () => {
+test("helmet's security headers are set; with CORS_ORIGINS a disallowed Origin gets no Access-Control-Allow-Origin", async () => {
     const s = await h.newServer({ env: { CORS_ORIGINS: "https://leaderboard.gdgmit.example" } });
     const res = await s.get("/api/leaderboard", { headers: { Origin: "https://evil.example" } });
     assert.equal(res.status, 200);
@@ -224,10 +216,10 @@ test("32: helmet's security headers are set; with CORS_ORIGINS a disallowed Orig
     assert.equal(preflight.headers.get("access-control-allow-origin"), null);
 });
 
-test("33: more than 500 rows → 400; 10 concurrent identical submissions → exactly one user", async () => {
+test("more than 500 rows → 400; 10 concurrent identical submissions → exactly one user", async () => {
     const s = await h.newServer();
     const tooMany = Array.from({ length: 501 }, (_, i) => participant(`many${i}`, `Many ${i}`));
-    assertStandardError(await s.ingest(tooMany), 400, "VALIDATION_ERROR");
+    assertErrorShape(await s.ingest(tooMany), 400, "VALIDATION_ERROR");
     assert.equal(await s.db.collection("users").countDocuments(), 0);
 
     const results = await Promise.all(Array.from({ length: 10 }, () => s.ingest(participant("same", "Same Person"))));
@@ -237,7 +229,7 @@ test("33: more than 500 rows → 400; 10 concurrent identical submissions → ex
     assert.equal(await s.db.collection("users").countDocuments(), 1);
 });
 
-test("34: an email that belongs to a different profile rejects that row and leaves the other user unchanged", async () => {
+test("an email that belongs to a different profile rejects that row and leaves the other user unchanged", async () => {
     const s = await h.newServer();
     await s.ingest(participant("owner", "Owner"));
     const owner = await s.user("Owner");

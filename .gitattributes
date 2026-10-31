@@ -1,4 +1,4 @@
-# Protected files: check out byte-for-byte as committed (no CRLF conversion).
+# Protected files and the badge whitelist: check out byte-for-byte as committed (no CRLF conversion).
 server/scraper/webScraper.js -text
 server/scraper/test.js -text
 server/seeds/userSeed.js -text

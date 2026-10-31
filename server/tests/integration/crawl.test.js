@@ -7,14 +7,15 @@ const { startMongo } = require("../helpers/mongo");
 const { User } = require("../../models/users");
 const { Badge } = require("../../models/badges");
 const { UserBadge } = require("../../models/userBadges");
-const { crawlAll } = require("../../services/crawl");
+const { crawlAll, settingsFromConfig } = require("../../services/crawl");
+const { testConfig } = require("../helpers/env");
 
 const COMPUTE = "The Basics of Google Cloud Compute";
 const WEBSITE = "Build a Website on Google Cloud";
 const VISION = "Analyze Images with the Cloud Vision API";
 
 // Tiny delays so retry paths run fast.
-const FAST = { minGapMs: 0, backoffBaseMs: 1, backoffMaxMs: 5, retryAfterMaxMs: 300 };
+const FAST = { ...settingsFromConfig(testConfig()), minGapMs: 0, backoffBaseMs: 1, backoffMaxMs: 5, retryAfterMaxMs: 300 };
 
 let mongo;
 let seq = 0;
@@ -192,7 +193,7 @@ test("an empty result: failure with no writes if the user has valid badges, succ
     const withBadges = await makeUser();
     await legacyRow(withBadges, COMPUTE, "2026-10-27T00:00:00Z");
     await User.updateOne({ _id: withBadges._id }, { $set: { badgeCount: 1 } });
-    const withoutBadges = await makeUser();
+    await makeUser();
     const before = await snapshot();
 
     const result = await crawlAll({ scrape: stubScrape({}), ...FAST });
@@ -201,7 +202,6 @@ test("an empty result: failure with no writes if the user has valid badges, succ
     assert.equal(result.failed, 1);
     assert.deepEqual(result.failures, [{ userId: String(withBadges._id), reason: "empty_result", httpStatus: null }]);
     assert.deepEqual(await snapshot(), before);
-    assert.ok(withoutBadges);
 });
 
 test("a thrown scrape leaves data untouched and is recorded", async () => {

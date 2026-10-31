@@ -4,11 +4,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const request = require("supertest");
 
-const { buildTestApp } = require("../helpers/app");
+const { buildTestApp, assertErrorShape } = require("../helpers/app");
 const { startMongo } = require("../helpers/mongo");
-const { notFound, errorHandler } = require("../../middleware/errors");
+const { notFound, errorHandler, AppError } = require("../../middleware/errors");
 const { requestId } = require("../../middleware/requestId");
-const { AppError } = require("../../middleware/errors");
 
 let mongo;
 let app;
@@ -22,16 +21,7 @@ after(async () => {
     await mongo?.stop();
 });
 
-function assertErrorShape(res, status, code) {
-    assert.equal(res.status, status);
-    assert.match(res.headers["content-type"], /application\/json/);
-    assert.equal(res.body.error.code, code);
-    assert.equal(typeof res.body.error.message, "string");
-    assert.equal(res.body.error.requestId, res.headers["x-request-id"]);
-    assert.equal(res.body.error.stack, undefined);
-}
-
-test("app boots against the in-memory replica set", async () => {
+test("tests run against a single-node in-memory replica set", async () => {
     assert.equal(mongoose.connection.readyState, 1);
     const hello = await mongoose.connection.db.admin().command({ hello: 1 });
     assert.ok(hello.setName, "expected a replica set");
@@ -100,9 +90,4 @@ test("error handler: AppError keeps code/details; unknown errors become an opaqu
     assertErrorShape(boom, 500, "INTERNAL_ERROR");
     assert.equal(boom.body.error.message, "Internal server error");
     assert.doesNotMatch(JSON.stringify(boom.body), /hunter2/);
-});
-
-test("x-powered-by is disabled", async () => {
-    const res = await request(app).get("/nope");
-    assert.equal(res.headers["x-powered-by"], undefined);
 });

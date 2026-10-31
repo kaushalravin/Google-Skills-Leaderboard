@@ -1,40 +1,112 @@
-/* =============================================
-   variables.css — Global Design Tokens
-   ============================================= */
+/* Arial scaled to Poppins' metrics, so text doesn't move when the web font arrives */
+@font-face {
+  font-family: 'Poppins Fallback';
+  src: local('Arial');
+  ascent-override: 93.62%;
+  descent-override: 31.21%;
+  line-gap-override: 8.92%;
+  size-adjust: 112.16%;
+}
 
 :root {
-  /* Google brand colours */
-  --blue:         #4285F4;
-  --blue-dark:    #1a73e8;
-  --blue-light:   #e8f0fe;
-  --red:          #EA4335;
-  --yellow:       #FBBC05;
-  --green:        #34A853;
+  /* --brand-blue fills the track and focus ring; text links use --link-text; --google-* is for the heading bar and the Community card accents */
+  --brand-blue:    #1A73E8;
+  --google-blue:   #4285F4;
+  --google-red:    #EA4335;
+  --google-yellow: #FBBC04;
+  --google-green:  #34A853;
+  --track-empty:   #E3E5E8;
+  --text-muted:    #5F6368;
+  --hairline:      #DADCE0;
+  /* Borders of inputs and selects: 3:1 against their background (WCAG 1.4.11) */
+  --control-border: #80868B;
+  /* Text links and blue text: --brand-blue is under 4.5:1 on the grey page background */
+  --link-text:     #1967D2;
+  --focus-ring:        2px solid var(--brand-blue);
+  --focus-ring-offset: 2px;
 
-  /* Neutral palette */
+  /* Surfaces: --card-bg for cards, tables and sheets; --on-accent for text on --brand-blue */
+  --card-bg:    #FFFFFF;
+  --on-accent:  #FFFFFF;
+  --header-bg:  #F8F9FA;
+  /* The large site title in the header (24px+, so 3:1 is enough) */
+  --header-title: #4285F4;
+  --overlay:    rgba(32, 33, 36, 0.48);
+
+  /* Rank movement and swag pills */
+  --rank-up:          #188038;
+  --rank-down:        #C5221F;
+  --swag-gold-bg:     #FFF8E1;
+  --swag-gold-text:   #7A5600;
+  --swag-gold-border: #FFE082;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Layout: minimum touch target, and the pinned-participant bar at the bottom of the screen */
+  --touch-min:    44px;
+  --mebar-height: 60px;
+  /* MeBar sets this on <html> to calc(var(--mebar-height) + env(safe-area-inset-bottom)) while a participant is pinned */
+  --mebar-offset: 0px;
+
+  --blue-light:   #e8f0fe;
+
+  --podium-gold:   #D4A017;
+  --podium-silver: #9AA0A6;
+  --podium-bronze: #B87333;
+
   --ink:          #202124;
-  --mid:          #5F6368;
-  --border:       #DADCE0;
   --surface:      #F8F9FA;
   --bg:           #F4F4F4;
-  --white:        #FFFFFF;
 
-  /* Shadows */
   --shadow-xs: 0 1px 2px rgba(60,64,67,.08);
   --shadow-sm: 0 1px 4px rgba(60,64,67,.12), 0 1px 2px rgba(60,64,67,.08);
-  --shadow-md: 0 4px 12px rgba(60,64,67,.14), 0 2px 4px rgba(60,64,67,.08);
-  --shadow-lg: 0 12px 32px rgba(60,64,67,.18), 0 4px 8px rgba(60,64,67,.08);
 
-  /* Font */
-  --font: 'Poppins', sans-serif;
+  --font: 'Poppins', 'Poppins Fallback', sans-serif;
 
-  /* Border radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
   --radius-xl: 16px;
   --radius-pill: 999px;
 
-  /* Transitions */
   --transition: 0.2s ease;
+  --content-max: 1200px;
+}
+
+/* Every pair used for text is at least 4.5:1 (AA) on --card-bg and --bg */
+[data-bs-theme="dark"] {
+  --brand-blue:    #8AB4F8;
+  --track-empty:   #3C4043;
+  --text-muted:    #A8ACB0;
+  --hairline:      #3C4043;
+  --link-text:     #8AB4F8;
+
+  --card-bg:    #1E1F20;
+  --on-accent:  #131314;
+  --header-bg:  #1E1F20;
+  --header-title: #8AB4F8;
+  --overlay:    rgba(0, 0, 0, 0.6);
+
+  --rank-up:          #81C995;
+  --rank-down:        #F28B82;
+  /* Softer podium accents so the desktop steps don't glare on the dark page */
+  --podium-gold:   #B8901A;
+  --podium-silver: #80868B;
+  --podium-bronze: #9A6230;
+  --swag-gold-bg:     #3A2F0B;
+  --swag-gold-text:   #F6D365;
+  --swag-gold-border: #6B5413;
+
+  --blue-light:   #1F3A5F;
+
+  --ink:          #E3E3E3;
+  --surface:      #282A2C;
+  --bg:           #131314;
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
 }

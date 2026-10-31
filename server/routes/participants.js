@@ -22,18 +22,17 @@ participantsRouter.use((req, res, next) => {
 });
 participantsRouter.use(requireAdmin);
 
-//used for upserting a participant row or multiple rows. Returns a summary of the operation.
 participantsRouter.post("/", async (req, res) => {
     const parsed = rowsSchema.safeParse(toRows(req.body));
     if (!parsed.success) {
         throw new AppError(400, "VALIDATION_ERROR", "Body must be a participant row, an array of 1–500 rows, or { participants: [...] }");
     }
 
-    const { config, logger } = req.app.locals;
+    const { config } = req.app.locals;
     const result = await ingestParticipants(parsed.data, {
         startDate: config.COMPETITION_START_DATE,
         endDate: config.COMPETITION_END_DATE,
-        logger: req.log ?? logger
+        logger: req.log
     });
 
     if (result.rejected.length === result.received) {

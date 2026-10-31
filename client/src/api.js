@@ -1,40 +1,44 @@
-/**
- * api.js — Leaderboard API service layer.
- *
- * All fetch calls live here, isolated from presentational components.
- * The base URL is read from VITE_API_BASE_URL (public, no secrets).
- * Admin endpoints are intentionally not called from this public client.
- *
- * API contract (GET /api/leaderboard):
- *   {
- *     lastSuccessfulUpdate: string|null,
- *     competitionStartDate: string|null,
- *     pagination: { page, limit, total, totalPages },
- *     rows: [{
- *       rank, userId, username, skillsUrl,
- *       validBadgeCount, validCredits,
- *       latestValidBadgeAt,
- *       badges: [{ name, imageUrl, earnedAt }]
- *     }]
- *   }
- */
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
+// Set by public/sw.js only when it answers from its cache because the network failed.
+const CACHED_AT_HEADER = 'X-SW-Cached-At'
 
-/**
- * Fetch a page of leaderboard entries.
- * @param {{ page?: number, limit?: number, search?: string }} opts
- */
-export async function fetchLeaderboard({ page = 1, limit = 50, search = '' } = {}) {
-  const params = new URLSearchParams({ page, limit });
-  if (search) params.set('search', search);
-
-  const res = await fetch(`${BASE_URL}/api/leaderboard?${params.toString()}`);
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`Leaderboard request failed: ${res.status}${text ? ' — ' + text : ''}`);
+// The response body is never surfaced: the UI shows a generic message and details go to the console.
+async function request(path) {
+  try {
+    return await fetch(`${BASE_URL}${path}`)
+  } catch (err) {
+    console.error('API request failed', { path, error: err })
+    throw new Error('Request failed')
   }
+}
 
-  return res.json();
+// okStatuses: non-2xx answers that still carry a JSON body the caller wants
+async function getJson(path, { okStatuses = [] } = {}) {
+  const res = await request(path)
+  if (!res.ok && !okStatuses.includes(res.status)) {
+    console.error('API request failed', { path, status: res.status })
+    const error = new Error('Request failed')
+    error.status = res.status
+    throw error
+  }
+  const data = await res.json()
+  const cachedAt = res.headers.get(CACHED_AT_HEADER)
+  if (cachedAt) data.servedFromCacheAt = cachedAt
+  return data
+}
+
+export function fetchLeaderboard({ page = 1, limit = 50, search = '' } = {}) {
+  const params = new URLSearchParams({ page, limit })
+  if (search) params.set('search', search)
+  return getJson(`/api/leaderboard?${params}`)
+}
+
+export function fetchParticipant(userId) {
+  return getJson(`/api/leaderboard/${encodeURIComponent(userId)}`)
+}
+
+// The health endpoint answers 503 with a JSON body when the database is down; that is a status, not an error.
+export function fetchHealth() {
+  return getJson('/api/health', { okStatuses: [503] })
 }
